@@ -14,7 +14,7 @@ class TokenBag:
             GemType.RED: 4,
             GemType.WHITE: 4,
             GemType.PEARL: 2,
-            GemType.GOLD: 3
+            GemType.GOLD: 3,
         }
 
         for gem_type, count in gem_type_counts.items():

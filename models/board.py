@@ -38,20 +38,3 @@ class Board:
 
     def __str__(self):
         return f'{self.board_gems}'
-
-    # def peek(self):
-    #     if (len(self.cards) > 0):
-    #         return self.cards[-1]
-    #     else:
-    #         return None
-    #
-    # def popAll(self):
-    #     return self.cards
-    #
-    # def clear(self):
-    #     self.cards = []
-    #
-    # def isSnap(self):
-    #     if (len(self.cards) > 1):
-    #         return (self.cards[-1].value == self.cards[-2].value)
-    #     return False

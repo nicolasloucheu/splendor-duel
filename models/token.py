@@ -10,6 +10,7 @@ class GemType(Enum):
     RED = 5
     PEARL = 6
     GOLD = 7
+    ANY = 8
 
 
 class Token:
