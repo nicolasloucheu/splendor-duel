@@ -20,6 +20,8 @@ class TokenBag:
         for gem_type, count in gem_type_counts.items():
             self.tokens.extend([Token(gem_type) for _ in range(count)])
 
+        self.shuffle()
+
     def shuffle(self):
         random.shuffle(self.tokens)
 
