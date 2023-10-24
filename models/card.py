@@ -19,7 +19,7 @@ class Card:
     special_effect = None
 
     def __init__(self, card_id, level, cost, value, color, crowns, victory_points, special_effect):
-        self.id = card_id
+        self.card_id = card_id
         self.level = level
         self.cost = cost
         self.value = value
@@ -27,7 +27,6 @@ class Card:
         self.crowns = crowns
         self.victory_points = victory_points
         self.special_effect = special_effect
-
 
     def __str__(self):
         return f'{self.card_id}'
