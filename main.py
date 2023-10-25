@@ -13,7 +13,7 @@ pygame.display.set_caption("Splendor Duel")
 tokenbag = TokenBag()
 board = Board()
 tokenbag.shuffle()
-board.fill(tokenbag)
+board.fill(tokenbag=tokenbag)
 
 level1_deck = Deck(db_cards=LEVEL1_CARDS)
 level2_deck = Deck(db_cards=LEVEL2_CARDS)
