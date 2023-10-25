@@ -1,3 +1,6 @@
+from collections import Counter
+
+
 def find_index(target_value, matrix):
     for row_index, row in enumerate(matrix):
         try:
@@ -33,8 +36,12 @@ class Board:
         """
         Remove from the board the tokens corresponding to the indices given
         """
+        drawn_tokens = {}
         for token_index in indices:
+            drawn_tokens = dict(Counter(drawn_tokens) + Counter({self.board_gems[token_index[0]][token_index[1]]: 1}))
             self.board_gems[token_index[0]][token_index[1]] = None
+
+        return drawn_tokens
 
     def __str__(self):
         return f'{self.board_gems}'

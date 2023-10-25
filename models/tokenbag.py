@@ -1,3 +1,4 @@
+from collections import Counter
 from models.token import GemType, Token
 import random
 
@@ -30,6 +31,9 @@ class TokenBag:
 
     def get_number_of_tokens_in_bag(self):
         return len(self.tokens)
+
+    def add_tokens(self, player_tokens=None):
+        self.tokens = dict(Counter(self.tokens) + Counter(player_tokens))
 
     def __str__(self):
         return f'{self.tokens}'
