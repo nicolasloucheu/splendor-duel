@@ -18,7 +18,8 @@ class Card:
     victory_points = None
     special_effect = None
 
-    def __init__(self, card_id, level, cost, value, color, crowns, victory_points, special_effect):
+    def __init__(self, card_id=None, level=None, cost=None, value=None, color=None, crowns=None, victory_points=None,
+                 special_effect=None):
         self.card_id = card_id
         self.level = level
         self.cost = cost

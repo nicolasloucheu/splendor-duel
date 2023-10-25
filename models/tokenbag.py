@@ -31,8 +31,5 @@ class TokenBag:
     def get_number_of_tokens_in_bag(self):
         return len(self.tokens)
 
-    def tmp_get_one(self):
-        return self.tokens.pop()
-
     def __str__(self):
         return f'{self.tokens}'

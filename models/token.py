@@ -17,7 +17,7 @@ class Token:
     gem_type = None
     image = None
 
-    def __init__(self, gem_type):
+    def __init__(self, gem_type=None):
         self.gem_type = gem_type
         self.image = pygame.image.load('images/' + self.gem_type.name + '.jpeg')
 

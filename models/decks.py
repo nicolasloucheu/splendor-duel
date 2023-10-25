@@ -3,7 +3,7 @@ import random
 
 class Deck:
 
-    def __init__(self, db_cards):
+    def __init__(self, db_cards=None):
         self.cards = []
         self.cards.extend(db_cards)
         self.shuffle()
