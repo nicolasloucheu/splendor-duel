@@ -4,7 +4,7 @@ from enum import Enum
 from models import LEVEL1_CARDS, LEVEL2_CARDS, LEVEL3_CARDS, CROWN_CARDS
 from models.board import Board
 from models.decks import Deck
-from models.display_cards import DisplayCards
+from models.displayed_cards import DisplayCards
 from models.player import Player
 from models.tokenbag import TokenBag
 import random
