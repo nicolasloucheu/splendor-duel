@@ -7,6 +7,7 @@ class Player:
     reserved_cards = None
     owned_tokens = None
     owned_scrolls = None
+    opponent = None
 
     def __init__(self, name):
         self.name = name
@@ -14,6 +15,7 @@ class Player:
         self.reserved_cards = []
         self.owned_tokens = {}
         self.owned_scrolls = 0
+        self.opponent = None
 
     def buy_card(self, display_cards=None, card_position=None, tokenbag=None):
         new_card = display_cards.draw(card_position)

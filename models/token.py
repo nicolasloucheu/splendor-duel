@@ -1,5 +1,4 @@
 from enum import Enum
-import pygame
 
 
 class GemType(Enum):
@@ -19,7 +18,7 @@ class Token:
 
     def __init__(self, gem_type=None):
         self.gem_type = gem_type
-        self.image = pygame.image.load('images/' + self.gem_type.name + '.jpeg')
+        self.image = f'images/{self.gem_type.name}.jpeg'
 
     def __str__(self):
         return f'{self.gem_type}'

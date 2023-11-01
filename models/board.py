@@ -1,5 +1,12 @@
 from collections import Counter
 
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import Image
+from kivy.uix.label import Label
+
+from models.token import Token
+from models.tokenbag import TokenBag
+
 
 def find_index(target_value, matrix):
     for row_index, row in enumerate(matrix):
@@ -10,11 +17,13 @@ def find_index(target_value, matrix):
         yield row_index, column_index
 
 
-class Board:
-    index_board = None
+class Board(GridLayout):
     board_gems = None
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super(Board, self).__init__(**kwargs)
+        self.cols = 5
+        self.tokenbag = TokenBag()
         self.index_board = [
             [21, 22, 23, 24, 25],
             [20, 7, 8, 9, 10],
@@ -23,6 +32,9 @@ class Board:
             [17, 16, 15, 14, 13]
         ]
         self.board_gems = [[None] * 5 for _ in range(5)]
+        self.fill(self.tokenbag)
+
+        # Create and add buttons to represent tokens on the board
 
     def fill(self, tokenbag=None):
         for current_position in range(1, 26):
@@ -30,7 +42,16 @@ class Board:
                 matches = [match for match in find_index(current_position, self.index_board)]
                 double_index = list(matches[0])
                 if self.board_gems[double_index[0]][double_index[1]] is None:
-                    self.board_gems[double_index[0]][double_index[1]] = tokenbag.tokens.pop(0)
+                    token = tokenbag.tokens.pop(0)
+                    self.board_gems[double_index[0]][double_index[1]] = token
+        for i in range(len(self.board_gems)):
+            for j in range(len(self.board_gems[i])):
+                if isinstance(self.board_gems[i][j], Token):
+                    image = Image(source=self.board_gems[i][j].image)
+                    self.add_widget(image)
+                else:
+                    label = Label()
+                    self.add_widget(label)
 
     def draw_tokens(self, indices=None):
         """
