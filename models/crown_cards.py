@@ -13,12 +13,12 @@ class CrownCards(BoxLayout):
 
     def show_cards(self):
         for card in self.deck.cards:
-            str_label = f'{card.victory_points} victory points'
+            str_label = f'{card.victory_points} victory points\n'
             if card.special_effect:
                 special_effect = card.special_effect.name.lower()
-                str_label += f' - {special_effect}'
+                str_label += special_effect
             else:
-                str_label += ' - no effect'
+                str_label += 'no effect'
             label = Label(text=str_label)
             self.add_widget(label)
 
