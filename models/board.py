@@ -47,7 +47,7 @@ class Board(GridLayout):
         for i in range(len(self.board_gems)):
             for j in range(len(self.board_gems[i])):
                 if isinstance(self.board_gems[i][j], Token):
-                    image = Image(source=self.board_gems[i][j].image)
+                    image = Image(source=self.board_gems[i][j].image, fit_mode='cover')
                     self.add_widget(image)
                 else:
                     label = Label()
