@@ -1,11 +1,11 @@
 from kivy.app import App
 from models.table import Table
-from models.scrolls import Scrolls
+from models.player import Player
 
 
 class SplendorApp(App):
     def build(self):
-        return Table()
+        return Player()
 
 
 if __name__ == '__main__':
