@@ -6,7 +6,9 @@ class Player(GridLayout):
     def __init__(self, **kwargs):
         super(Player, self).__init__(**kwargs)
         self.cols = 2
-        size_top = (1, .2)
+        self.size_hint = (.75, .5)
+        self.pos_hint = {'center_x': .5}
+        size_top = (1, .33)
         owned_tokens = Button(text='owned_tokens', size_hint=size_top)
         self.add_widget(owned_tokens)
         owned_scrolls = Button(text='owned_scrolls', size_hint=size_top)
