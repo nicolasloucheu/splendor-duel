@@ -1,10 +1,11 @@
+from kivy.core.window import Window
 from kivy.graphics import Ellipse
 from kivy.metrics import dp
 from kivy.uix.widget import Widget
 
 
 class Scrolls(Widget):
-    def __init__(self, **kwargs):
+    def __init__(self,  **kwargs):
         super(Scrolls, self).__init__(**kwargs)
         self.scrolls = 3
         self.orientation = 'vertical'
@@ -18,7 +19,7 @@ class Scrolls(Widget):
         self.canvas.add(self.circle3)
 
     def on_size(self, *args):
-        circle_positions = [(self.center_x - 25, self.height * i / 10 - 25) for i in range(4, 4 + self.scrolls)]
+        circle_positions = [(self.center_x - dp(10), Window.size[1] * i / 10 - dp(10)) for i in range(4, 4 + self.scrolls)]
         for circle, position in zip(self.circles, circle_positions):
             circle.pos = position
 

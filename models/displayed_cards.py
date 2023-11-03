@@ -19,7 +19,6 @@ class DisplayedCards(BoxLayout):
         self.deck = deck
         self.fill_cards()
         self.show_cards()
-        print(self.cards)
 
     def show_cards(self):
         for card in self.cards:
