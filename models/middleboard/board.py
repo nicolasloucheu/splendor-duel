@@ -4,8 +4,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 
-from models.token import Token
-from models.tokenbag import TokenBag
+from models.unit.token import Token
+from models.unit.tokenbag import TokenBag
 
 
 def find_index(target_value, matrix):

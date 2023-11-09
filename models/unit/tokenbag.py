@@ -1,5 +1,5 @@
 from collections import Counter
-from models.token import GemType, Token
+from models.unit.token import GemType, Token
 import random
 
 

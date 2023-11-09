@@ -1,8 +1,6 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 
-from models.decks import Deck
-
 
 class DisplayedCards(BoxLayout):
     max_cards = None

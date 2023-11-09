@@ -1,11 +1,11 @@
 from kivy.uix.boxlayout import BoxLayout
 
 from models import CROWN_CARDS, LEVEL1_CARDS, LEVEL2_CARDS, LEVEL3_CARDS
-from models.board import Board
-from models.crown_cards import CrownCards
-from models.decks import Deck
-from models.displayed_cards import DisplayedCards
-from models.scrolls import Scrolls
+from models.middleboard.board import Board
+from models.middleboard.crown_cards import CrownCards
+from models.unit.decks import Deck
+from models.middleboard.displayed_cards import DisplayedCards
+from models.middleboard.scrolls import Scrolls
 
 
 class MiddleBoard(BoxLayout):

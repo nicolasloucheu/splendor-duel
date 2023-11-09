@@ -1,9 +1,9 @@
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 
-from models.owned_cards import OwnedCards
-from models.owned_scrolls import OwnedScrolls
-from models.owned_tokens import OwnedTokens
+from models.player.owned_cards import OwnedCards
+from models.player.owned_scrolls import OwnedScrolls
+from models.player.owned_tokens import OwnedTokens
 
 
 class Player(GridLayout):

@@ -1,5 +1,5 @@
-from models.card import Card, SpecialEffect
-from models.token import GemType
+from models.unit.card import Card, SpecialEffect
+from models.unit.token import GemType
 
 LEVEL1_CARDS = [
     Card(

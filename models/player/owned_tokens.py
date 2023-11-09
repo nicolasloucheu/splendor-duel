@@ -1,7 +1,7 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 
-from models.token import GemType
+from models.unit.token import GemType
 
 
 class OwnedTokens(BoxLayout):
