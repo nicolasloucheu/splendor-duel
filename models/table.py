@@ -1,7 +1,7 @@
 from kivy.uix.boxlayout import BoxLayout
 
-from models.middleboard import MiddleBoard
-from models.player import Player
+from models.middleboard.middleboard import MiddleBoard
+from models.player.player import Player
 
 
 class Table(BoxLayout):
@@ -9,10 +9,10 @@ class Table(BoxLayout):
         super(Table, self).__init__(**kwargs)
         self.orientation = 'vertical'
         self.spacing = 20
-        player2 = Player()
+        player2 = Player(reserved_cards=[])
         self.add_widget(player2)
         middleboard = MiddleBoard()
         self.add_widget(middleboard)
-        player1 = Player()
+        player1 = Player(reserved_cards=[])
         self.add_widget(player1)
 
