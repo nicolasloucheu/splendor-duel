@@ -1,9 +1,9 @@
-from kivy.app import App
+from kivy.clock import Clock
 from kivy.graphics import Rectangle, Color
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.button import Button
 from kivy.uix.image import Image
-from kivy.uix.label import Label
+from kivy.uix.relativelayout import RelativeLayout
 
 from models.unit.token import Token, GemType
 from models.unit.tokenbag import TokenBag
@@ -50,30 +50,53 @@ class ImageButton(ButtonBehavior, Image):
         self.col = col
 
     def on_press(self):
-        if (self.row, self.col) in self.parent.clicked_cells:
-            click_index = self.parent.clicked_cells.index((self.row, self.col))
-            del self.parent.clicked_cells[click_index]
-            del self.parent.clicked_cells_gemtype[click_index]
-        elif (self.row, self.col) in self.parent.not_clickable_cells_index:
+        current_cell = (self.row, self.col)
+        current_gemtype = self.parent.board_gems[self.row][self.col].gem_type
+
+        if current_cell in self.parent.clicked_cells:
+            if len(self.parent.clicked_cells) == 3:
+                cells = zip(*self.parent.clicked_cells)
+                middle_cell = tuple(sum(coord) // 3 for coord in cells)
+
+                if current_cell != middle_cell:
+                    click_index = self.parent.clicked_cells.index(current_cell)
+                    del self.parent.clicked_cells[click_index]
+                    del self.parent.clicked_cells_gemtype[click_index]
+            else:
+                click_index = self.parent.clicked_cells.index(current_cell)
+                del self.parent.clicked_cells[click_index]
+                del self.parent.clicked_cells_gemtype[click_index]
+
+        elif current_cell in self.parent.not_clickable_cells_index or current_gemtype == GemType.ANY:
             pass
         else:
-            self.parent.clicked_cells.append((self.row, self.col))
+            self.parent.clicked_cells.append(current_cell)
             self.parent.cell_size = self.size
+            self.parent.width_confirm_cell = self.parent.cell_size[0] * .4
+            self.parent.height_confirm_cell = self.parent.cell_size[1] * .4
             self.parent.clicked_cells_gemtype.append(self.parent.board_gems[self.row][self.col])
+
         self.parent.update_board()
 
 
-class Board(GridLayout):
+class Board(RelativeLayout):
     board_gems = None
     clicked_cells = []
     clicked_cells_gemtype = []
-    cell_size = None
+    cell_size = (0, 0)
     not_clickable_cells_pos = []
     not_clickable_cells_index = []
 
+    width_confirm_cell = .4 * cell_size[0]
+    height_confirm_cell = .4 * cell_size[1]
+
+    confirm_pos = None
+
     def __init__(self, **kwargs):
         super(Board, self).__init__(**kwargs)
+        self.bind(size=self.on_window_resize)
         self.cols = 5
+        self.rows = 5
         self.tokenbag = TokenBag()
         self.index_board = [
             [21, 22, 23, 24, 25],
@@ -85,6 +108,8 @@ class Board(GridLayout):
         self.board_gems = [[Token(gem_type=GemType.ANY)] * 5 for _ in range(5)]
         self.fill(self.tokenbag)
 
+        self.cell_size = (self.width / self.cols, self.height / self.rows)
+
     def fill(self, tokenbag=None):
         for current_position in range(1, 26):
             if tokenbag.get_number_of_tokens_in_bag() > 0:
@@ -95,23 +120,30 @@ class Board(GridLayout):
                     self.board_gems[double_index[0]][double_index[1]] = token
         self.update_board()
 
-    def update_board(self):
+    def update_board(self, *args):
         self.clear_widgets()
         self.draw_board()
         self.color_clicked_cells()
         self.generate_not_clickable_cells()
         self.color_not_clickable_cells()
-        self.add_confirmation_to_pick()
+        if len(self.clicked_cells) > 0:
+            self.get_confirmation_index()
+            self.add_confirmation_to_pick()
 
     def draw_board(self):
         for row in range(len(self.board_gems)):
             for col in range(len(self.board_gems[row])):
                 if isinstance(self.board_gems[row][col], Token):
-                    image = ImageButton(row=row, col=col, source=self.board_gems[row][col].image, fit_mode='cover')
+                    image = ImageButton(
+                        row=row,
+                        col=col,
+                        source=Token(self.board_gems[row][col].gem_type).image,
+                        fit_mode='cover'
+                    )
+                    image.size_hint = (None, None)
+                    image.size = (self.width / self.cols, self.height / self.rows)
+                    image.pos = (col * image.width, (self.rows - 1 - row) * image.height)
                     self.add_widget(image)
-                else:
-                    label = Label()
-                    self.add_widget(label)
 
     def color_clicked_cells(self):
         for clicked_cell in self.clicked_cells:
@@ -131,13 +163,14 @@ class Board(GridLayout):
         self.not_clickable_cells_pos = []
         self.not_clickable_cells_index = []
         if len(self.clicked_cells) == 1:
-            print(self.clicked_cells_gemtype[0].gem_type == GemType.GOLD)
             if self.clicked_cells_gemtype[0].gem_type == GemType.GOLD:
                 self.generate_not_clickable_cells_one_selected_gold()
             else:
                 self.generate_not_clickable_cells_one_selected()
         elif len(self.clicked_cells) == 2:
             self.generate_not_clickable_cells_two_selected()
+        elif len(self.clicked_cells) == 3:
+            self.generate_not_clickable_cells_three_selected()
 
     def generate_not_clickable_cells_one_selected(self):
         clicked_cell = self.clicked_cells[0]
@@ -145,9 +178,11 @@ class Board(GridLayout):
             for possible_col in range(5):
                 # If the cell it at more than one cell than the clicked one
                 # Or the cell is a Gold token
+                # Or the cell is empty
                 if (
                         abs(clicked_cell[0] - possible_row) > 1 or abs(clicked_cell[1] - possible_col) > 1 or
-                        self.board_gems[possible_row][possible_col].gem_type == GemType.GOLD
+                        self.board_gems[possible_row][possible_col].gem_type == GemType.GOLD or
+                        self.board_gems[possible_row][possible_col].gem_type == GemType.ANY
                 ):
                     cell_pos_x = possible_col * self.cell_size[0]
                     cell_pos_y = (4 - possible_row) * self.cell_size[1]
@@ -186,23 +221,74 @@ class Board(GridLayout):
 
         for possible_row in range(5):
             for possible_col in range(5):
-                if (possible_row, possible_col) not in possible_clicks or self.board_gems[possible_row][possible_col].gem_type == GemType.GOLD:
+                cell_position = (possible_col * self.cell_size[0], (4 - possible_row) * self.cell_size[1])
+                cell_index = (possible_row, possible_col)
+
+                # If the cell is not in the clicks that are authorized or that the Token is not a gold one
+                # And if the cell is not clicked
+                if ((
+                        cell_index not in possible_clicks or
+                        self.board_gems[possible_row][possible_col].gem_type == GemType.GOLD
+                ) and
+                        cell_index not in self.clicked_cells):
+
+                    self.not_clickable_cells_pos.append(cell_position)
+                    self.not_clickable_cells_index.append(cell_index)
+
+    def generate_not_clickable_cells_three_selected(self):
+        for possible_row in range(5):
+            for possible_col in range(5):
+                if (possible_row, possible_col) not in self.clicked_cells:
                     cell_pos_x = possible_col * self.cell_size[0]
                     cell_pos_y = (4 - possible_row) * self.cell_size[1]
                     self.not_clickable_cells_pos.append((cell_pos_x, cell_pos_y))
                     self.not_clickable_cells_index.append((possible_row, possible_col))
 
+    def get_confirmation_index(self):
+        righteous_cell = [0, 0]
+        for cell in self.clicked_cells:
+            if cell[1] >= righteous_cell[1]:
+                righteous_cell = cell
+        if righteous_cell[1] == 4:
+            still_going_left = True
+            y_index_empty = 0
+            while still_going_left:
+                if (righteous_cell[0], righteous_cell[1] - y_index_empty) in self.clicked_cells:
+                    y_index_empty += 1
+                else:
+                    still_going_left = False
+            confirm_x = (righteous_cell[1] - y_index_empty + 1) * self.cell_size[0] - self.width_confirm_cell
+            confirm_y = (4 - righteous_cell[0]) * self.cell_size[1]
+            self.confirm_pos = (confirm_x, confirm_y)
+        else:
+            confirm_x = (righteous_cell[1] * self.cell_size[0]) + self.cell_size[0]
+            confirm_y = (4 - righteous_cell[0]) * self.cell_size[1]
+            self.confirm_pos = (confirm_x, confirm_y)
+
     def add_confirmation_to_pick(self):
-        pass
+        with self.canvas:
+            Color(1, 0, 0, 1, mode='rgba')
+            confirmation_button = Button(
+                pos=(self.confirm_pos[0], self.confirm_pos[1]),
+                size_hint=(None, None),
+                size=(self.width_confirm_cell, self.height_confirm_cell)
+            )
+            confirmation_button.bind(on_press=self.confirmation_button_pressed)
+            self.add_widget(confirmation_button)
+
+    def confirmation_button_pressed(self, instance):
+        for position in self.clicked_cells:
+            self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
+
+        self.not_clickable_cells_pos = []
+        self.not_clickable_cells_index = []
+        self.clicked_cells = []
+        self.clicked_cells_gemtype = []
+        self.confirm_pos = None
+        self.update_board()
+
+    def on_window_resize(self, instance, value):
+        Clock.schedule_once(self.update_board, 0)
 
     def __str__(self):
         return f'{self.board_gems}'
-
-
-class SplendorApp(App):
-    def build(self):
-        return Board()
-
-
-if __name__ == '__main__':
-    SplendorApp().run()
