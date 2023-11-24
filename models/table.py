@@ -15,4 +15,3 @@ class Table(BoxLayout):
         self.add_widget(middleboard)
         player1 = Player(reserved_cards=[])
         self.add_widget(player1)
-

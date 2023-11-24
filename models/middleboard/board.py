@@ -228,7 +228,8 @@ class Board(RelativeLayout):
                 # And if the cell is not clicked
                 if ((
                         cell_index not in possible_clicks or
-                        self.board_gems[possible_row][possible_col].gem_type == GemType.GOLD
+                        self.board_gems[possible_row][possible_col].gem_type == GemType.GOLD or
+                        self.board_gems[possible_row][possible_col].gem_type == GemType.ANY
                 ) and
                         cell_index not in self.clicked_cells):
 
