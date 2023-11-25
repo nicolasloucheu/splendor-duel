@@ -278,6 +278,7 @@ class Board(RelativeLayout):
             self.add_widget(confirmation_button)
 
     def confirmation_button_pressed(self, instance):
+        self.parent.parent.turn.player.owned_tokens.update_tokens(self.clicked_cells_gemtype)
         for position in self.clicked_cells:
             self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
 

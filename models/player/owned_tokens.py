@@ -25,3 +25,9 @@ class OwnedTokens(BoxLayout):
         gold_tokens = Label(text=str(self.tokens[GemType.GOLD]) + ' gold')
         self.add_widget(gold_tokens)
 
+    def update_tokens(self, tokens_list):
+        for token in tokens_list:
+            self.tokens[token.gem_type] += 1
+        self.clear_widgets()
+        self.__init__()
+

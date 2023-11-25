@@ -8,18 +8,24 @@ from models.player.reserved import Reserved
 
 
 class Player(GridLayout):
+    name = ''
+    owned_tokens = None
 
-    def __init__(self, reserved_cards, **kwargs):
+    def __init__(self, reserved_cards, name, **kwargs):
         super(Player, self).__init__(**kwargs)
+        self.name = name
         self.cols = 2
         self.size_hint = (.75, .5)
         self.pos_hint = {'center_x': .5}
         size_top = (1, .33)
-        owned_tokens = OwnedTokens(size_hint=size_top)
-        self.add_widget(owned_tokens)
+        self.owned_tokens = OwnedTokens(size_hint=size_top)
+        self.add_widget(self.owned_tokens)
         owned_scrolls = OwnedScrolls(size_hint=size_top)
         self.add_widget(owned_scrolls)
         owned_cards = OwnedCards()
         self.add_widget(owned_cards)
         reserved_cards = Reserved(reserved_cards=reserved_cards)
         self.add_widget(reserved_cards)
+
+    def __str__(self):
+        return self.name
