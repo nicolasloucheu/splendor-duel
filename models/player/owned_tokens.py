@@ -5,11 +5,20 @@ from models.unit.token import GemType
 
 
 class OwnedTokens(BoxLayout):
-    tokens = {GemType.RED: 0, GemType.GREEN: 0, GemType.BLUE: 0, GemType.BLACK: 0, GemType.WHITE: 0, GemType.PEARL: 0,
-              GemType.GOLD: 0}
 
     def __init__(self, **kwargs):
         super(OwnedTokens, self).__init__(**kwargs)
+        self.tokens = {GemType.RED: 0, GemType.GREEN: 0, GemType.BLUE: 0, GemType.BLACK: 0, GemType.WHITE: 0,
+                       GemType.PEARL: 0, GemType.GOLD: 0}
+        self.update_widgets()
+
+    def update_tokens(self, tokens_list):
+        for token in tokens_list:
+            self.tokens[token.gem_type] += 1
+        self.clear_widgets()
+        self.update_widgets()
+
+    def update_widgets(self):
         red_tokens = Label(text=str(self.tokens[GemType.RED]) + ' red')
         self.add_widget(red_tokens)
         green_tokens = Label(text=str(self.tokens[GemType.GREEN]) + ' green')
@@ -24,10 +33,3 @@ class OwnedTokens(BoxLayout):
         self.add_widget(pearl_tokens)
         gold_tokens = Label(text=str(self.tokens[GemType.GOLD]) + ' gold')
         self.add_widget(gold_tokens)
-
-    def update_tokens(self, tokens_list):
-        for token in tokens_list:
-            self.tokens[token.gem_type] += 1
-        self.clear_widgets()
-        self.__init__()
-

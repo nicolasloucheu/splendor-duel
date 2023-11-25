@@ -1,4 +1,3 @@
-from kivy.clock import Clock
 from kivy.graphics import Rectangle, Color
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.button import Button
@@ -278,7 +277,7 @@ class Board(RelativeLayout):
             self.add_widget(confirmation_button)
 
     def confirmation_button_pressed(self, instance):
-        self.parent.parent.turn.player.owned_tokens.update_tokens(self.clicked_cells_gemtype)
+        self.parent.parent.current_player.owned_tokens.update_tokens(self.clicked_cells_gemtype)
         for position in self.clicked_cells:
             self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
 
@@ -288,9 +287,10 @@ class Board(RelativeLayout):
         self.clicked_cells_gemtype = []
         self.confirm_pos = None
         self.update_board()
+        self.parent.parent.end_turn()
 
     def on_window_resize(self, instance, value):
-        Clock.schedule_once(self.update_board, 0)
+        self.update_board()
 
     def __str__(self):
         return f'{self.board_gems}'
