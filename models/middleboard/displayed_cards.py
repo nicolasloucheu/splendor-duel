@@ -1,5 +1,6 @@
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 
@@ -7,27 +8,37 @@ from kivy.uix.popup import Popup
 def get_cost(card):
     cost = ''
     for color, value in card.cost.items():
-        cost += f'{color}: {value} '
+        cost += f'- {color}: {value}\n'
     return cost
 
 
 class DisplayedCardPopupCard(BoxLayout):
-    def __init__(self, cards=None, **kwargs):
+    def __init__(self, cards=None, owned_tokens=None, **kwargs):
         super(DisplayedCardPopupCard, self).__init__(**kwargs)
         self.orientation = 'horizontal'
         for card in cards:
-            self.add_widget(Label(text=f'ID: {card.card_id}, Color: {card.value} {card.color}\nVictory points: {card.victory_points}, Crowns: {card.crowns}\nCost: {get_cost(card)}\nSpecial effect: {card.special_effect}'))
+            enough_tokens = True
+            for color, value in card.cost.items():
+                if owned_tokens[color] < value:
+                    enough_tokens = False
+            card_text = (f'ID: {card.card_id}\n'
+                         f'Color: {card.value} {card.color}\n'
+                         f'Victory points: {card.victory_points}\n'
+                         f'Crowns: {card.crowns}\n'
+                         f'Special effect: {card.special_effect}\n\n'
+                         f'Cost:\n{get_cost(card)}\n')
+            card_button = Button(text=card_text, disabled=not enough_tokens)
+            self.add_widget(card_button)
 
 
 class DisplayedCardPopup(Popup):
-    def __init__(self, level=None, cards=None, **kwargs):
+    def __init__(self, level=None, cards=None, owned_tokens=None, **kwargs):
         super(DisplayedCardPopup, self).__init__(**kwargs)
         self.title = f'Cards level {level}'
         self.size_hint = (.8, .8)
         self.auto_dismiss = True
-        popup_card = DisplayedCardPopupCard(cards=cards)
+        popup_card = DisplayedCardPopupCard(cards=cards, owned_tokens=owned_tokens)
         self.add_widget(popup_card)
-
 
 
 class DisplayedCards(ButtonBehavior, BoxLayout):
@@ -47,7 +58,8 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         self.show_cards()
 
     def on_press(self):
-        popup = DisplayedCardPopup(level=self.level, cards=self.cards)
+        owned_tokens = self.parent.parent.current_player.owned_tokens.tokens
+        popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens)
         popup.open()
 
     def show_cards(self):
