@@ -4,31 +4,46 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 
-
-def get_cost(card):
-    cost = ''
-    for color, value in card.cost.items():
-        cost += f'- {color}: {value}\n'
-    return cost
+from models import GemType
 
 
 class DisplayedCardPopupCard(BoxLayout):
     def __init__(self, cards=None, owned_tokens=None, **kwargs):
         super(DisplayedCardPopupCard, self).__init__(**kwargs)
         self.orientation = 'horizontal'
+        self.build_ui(cards, owned_tokens)
+
+    def build_ui(self, cards, owned_tokens):
         for card in cards:
-            enough_tokens = True
-            for color, value in card.cost.items():
-                if owned_tokens[color] < value:
-                    enough_tokens = False
-            card_text = (f'ID: {card.card_id}\n'
-                         f'Color: {card.value} {card.color}\n'
-                         f'Victory points: {card.victory_points}\n'
-                         f'Crowns: {card.crowns}\n'
-                         f'Special effect: {card.special_effect}\n\n'
-                         f'Cost:\n{get_cost(card)}\n')
+            enough_tokens = self.compute_has_enough_tokens(card, owned_tokens)
+            card_text = self.get_card_text(card)
             card_button = Button(text=card_text, disabled=not enough_tokens)
             self.add_widget(card_button)
+
+    def get_card_text(self, card):
+        return (
+            f'ID: {card.card_id}\n'
+            f'Color: {card.value} {card.color}\n'
+            f'Victory points: {card.victory_points}\n'
+            f'Crowns: {card.crowns}\n'
+            f'Special effect: {card.special_effect}\n\n'
+            f'Cost:\n{self.display_cost(card)}\n'
+        )
+
+    @staticmethod
+    def compute_has_enough_tokens(card, owned_tokens):
+        jokers = owned_tokens[GemType.GOLD]
+        for color, required_tokens in card.cost.items():
+            available_tokens = owned_tokens[color]
+            delta_token = max(0, required_tokens - available_tokens)
+            jokers -= delta_token
+            if jokers < 0:
+                return False
+        return True
+
+    @staticmethod
+    def display_cost(card):
+        return '\n'.join([f'- {color}: {value}' for color, value in card.cost.items()])
 
 
 class DisplayedCardPopup(Popup):
@@ -42,10 +57,7 @@ class DisplayedCardPopup(Popup):
 
 
 class DisplayedCards(ButtonBehavior, BoxLayout):
-    max_cards = None
-    level = None
-    deck = None
-    cards = []
+    cards = None
 
     def __init__(self, max_cards=None, level=None, deck=None, **kwargs):
         super(DisplayedCards, self).__init__(**kwargs)
@@ -64,14 +76,8 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
 
     def show_cards(self):
         for card in self.cards:
-            # str_label = f'{card.victory_points} victory points\nCost: {card.cost}\nLevel: {card.level}'
-            # if card.special_effect:
-            #     special_effect = card.special_effect.name.lower()
-            #     str_label += f' - {special_effect}'
-            # else:
-            #     str_label += ' - no effect'
-            str_label = f'Card level {card.level} (id: {card.card_id})'
-            label = Label(text=str_label)
+            label_text = f'Card level {card.level} (id: {card.card_id})'
+            label = Label(text=label_text)
             self.add_widget(label)
 
     def fill_cards(self):
@@ -84,5 +90,3 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
 
     def __str__(self):
         return f'{self.cards}'
-
-
