@@ -7,6 +7,9 @@ class SpecialEffect(Enum):
     TAKE_SCROLL = 3
     TAKE_OPPONENT_TOKEN = 4
 
+    def __str__(self):
+        return f'{self.name}'
+
 
 class Card:
     card_id = None

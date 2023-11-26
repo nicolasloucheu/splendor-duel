@@ -1,8 +1,36 @@
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 
 
-class DisplayedCards(BoxLayout):
+def get_cost(card):
+    cost = ''
+    for color, value in card.cost.items():
+        cost += f'{color}: {value} '
+    return cost
+
+
+class DisplayedCardPopupCard(BoxLayout):
+    def __init__(self, cards=None, **kwargs):
+        super(DisplayedCardPopupCard, self).__init__(**kwargs)
+        self.orientation = 'horizontal'
+        for card in cards:
+            self.add_widget(Label(text=f'ID: {card.card_id}, Color: {card.value} {card.color}\nVictory points: {card.victory_points}, Crowns: {card.crowns}\nCost: {get_cost(card)}\nSpecial effect: {card.special_effect}'))
+
+
+class DisplayedCardPopup(Popup):
+    def __init__(self, level=None, cards=None, **kwargs):
+        super(DisplayedCardPopup, self).__init__(**kwargs)
+        self.title = f'Cards level {level}'
+        self.size_hint = (.8, .8)
+        self.auto_dismiss = True
+        popup_card = DisplayedCardPopupCard(cards=cards)
+        self.add_widget(popup_card)
+
+
+
+class DisplayedCards(ButtonBehavior, BoxLayout):
     max_cards = None
     level = None
     deck = None
@@ -17,6 +45,10 @@ class DisplayedCards(BoxLayout):
         self.deck = deck
         self.fill_cards()
         self.show_cards()
+
+    def on_press(self):
+        popup = DisplayedCardPopup(level=self.level, cards=self.cards)
+        popup.open()
 
     def show_cards(self):
         for card in self.cards:

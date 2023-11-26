@@ -11,6 +11,9 @@ class GemType(Enum):
     GOLD = 7
     ANY = 8
 
+    def __str__(self):
+        return f'{self.name}'
+
 
 class Token:
     gem_type = None
