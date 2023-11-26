@@ -7,18 +7,20 @@ from kivy.uix.popup import Popup
 from models import GemType
 
 
-class DisplayedCardPopupCard(BoxLayout):
-    def __init__(self, cards=None, owned_tokens=None, **kwargs):
-        super(DisplayedCardPopupCard, self).__init__(**kwargs)
-        self.orientation = 'horizontal'
-        self.build_ui(cards, owned_tokens)
+class CardButton(Button):
+    def __init__(self, card=None, disabled=True, caller=None, **kwargs):
+        super(CardButton, self).__init__(**kwargs)
+        self.card = card
+        self.disabled = disabled
+        card_text = self.get_card_text(self.card)
+        self.text = card_text
+        self.caller = caller
 
-    def build_ui(self, cards, owned_tokens):
-        for card in cards:
-            enough_tokens = self.compute_has_enough_tokens(card, owned_tokens)
-            card_text = self.get_card_text(card)
-            card_button = Button(text=card_text, disabled=not enough_tokens)
-            self.add_widget(card_button)
+    def on_press(self):
+        print(f'Card pressed: {self.card}')
+        print(f'Card color: {self.card.color}')
+        current_player = self.caller.parent.parent.current_player
+        print(f'Current player: {current_player}')
 
     def get_card_text(self, card):
         return (
@@ -31,6 +33,23 @@ class DisplayedCardPopupCard(BoxLayout):
         )
 
     @staticmethod
+    def display_cost(card):
+        return '\n'.join([f'- {color}: {value}' for color, value in card.cost.items()])
+
+
+class DisplayedCardPopupCard(BoxLayout):
+    def __init__(self, cards=None, owned_tokens=None, caller=None, **kwargs):
+        super(DisplayedCardPopupCard, self).__init__(**kwargs)
+        self.orientation = 'horizontal'
+        self.build_ui(cards, owned_tokens, caller)
+
+    def build_ui(self, cards, owned_tokens, caller):
+        for card in cards:
+            enough_tokens = self.compute_has_enough_tokens(card, owned_tokens)
+            card_button = CardButton(card=card, disabled=not enough_tokens, caller=caller)
+            self.add_widget(card_button)
+
+    @staticmethod
     def compute_has_enough_tokens(card, owned_tokens):
         jokers = owned_tokens[GemType.GOLD]
         for color, required_tokens in card.cost.items():
@@ -41,18 +60,14 @@ class DisplayedCardPopupCard(BoxLayout):
                 return False
         return True
 
-    @staticmethod
-    def display_cost(card):
-        return '\n'.join([f'- {color}: {value}' for color, value in card.cost.items()])
-
 
 class DisplayedCardPopup(Popup):
-    def __init__(self, level=None, cards=None, owned_tokens=None, **kwargs):
+    def __init__(self, level=None, cards=None, owned_tokens=None, caller=None, **kwargs):
         super(DisplayedCardPopup, self).__init__(**kwargs)
         self.title = f'Cards level {level}'
         self.size_hint = (.8, .8)
         self.auto_dismiss = True
-        popup_card = DisplayedCardPopupCard(cards=cards, owned_tokens=owned_tokens)
+        popup_card = DisplayedCardPopupCard(cards=cards, owned_tokens=owned_tokens, caller=caller)
         self.add_widget(popup_card)
 
 
@@ -71,7 +86,7 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
 
     def on_press(self):
         owned_tokens = self.parent.parent.current_player.owned_tokens.tokens
-        popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens)
+        popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens, caller=self)
         popup.open()
 
     def show_cards(self):
