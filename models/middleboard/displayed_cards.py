@@ -8,18 +8,18 @@ from models import GemType
 
 
 class CardButton(Button):
-    def __init__(self, card=None, disabled=True, caller=None, **kwargs):
+    def __init__(self, card=None, disabled=True, caller_displayed_cards=None, **kwargs):
         super(CardButton, self).__init__(**kwargs)
         self.card = card
         self.disabled = disabled
         card_text = self.get_card_text(self.card)
         self.text = card_text
-        self.caller = caller
+        self.caller_displayed_cards = caller_displayed_cards
 
     def on_press(self):
         print(f'Card pressed: {self.card}')
         print(f'Card color: {self.card.color}')
-        current_player = self.caller.parent.parent.current_player
+        current_player = self.caller_displayed_cards.parent.parent.current_player
         print(f'Current player: {current_player}')
 
     def get_card_text(self, card):
@@ -38,15 +38,15 @@ class CardButton(Button):
 
 
 class DisplayedCardPopupCard(BoxLayout):
-    def __init__(self, cards=None, owned_tokens=None, caller=None, **kwargs):
+    def __init__(self, cards=None, owned_tokens=None, caller_displayed_cards=None, **kwargs):
         super(DisplayedCardPopupCard, self).__init__(**kwargs)
         self.orientation = 'horizontal'
-        self.build_ui(cards, owned_tokens, caller)
+        self.build_ui(cards, owned_tokens, caller_displayed_cards)
 
-    def build_ui(self, cards, owned_tokens, caller):
+    def build_ui(self, cards, owned_tokens, caller_displayed_cards):
         for card in cards:
             enough_tokens = self.compute_has_enough_tokens(card, owned_tokens)
-            card_button = CardButton(card=card, disabled=not enough_tokens, caller=caller)
+            card_button = CardButton(card=card, disabled=not enough_tokens, caller_displayed_cards=caller_displayed_cards)
             self.add_widget(card_button)
 
     @staticmethod
@@ -62,12 +62,13 @@ class DisplayedCardPopupCard(BoxLayout):
 
 
 class DisplayedCardPopup(Popup):
-    def __init__(self, level=None, cards=None, owned_tokens=None, caller=None, **kwargs):
+    def __init__(self, level=None, cards=None, owned_tokens=None, caller_displayed_cards=None, **kwargs):
         super(DisplayedCardPopup, self).__init__(**kwargs)
         self.title = f'Cards level {level}'
         self.size_hint = (.8, .8)
         self.auto_dismiss = True
-        popup_card = DisplayedCardPopupCard(cards=cards, owned_tokens=owned_tokens, caller=caller)
+        popup_card = DisplayedCardPopupCard(cards=cards, owned_tokens=owned_tokens,
+                                            caller_displayed_cards=caller_displayed_cards)
         self.add_widget(popup_card)
 
 
@@ -86,7 +87,8 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
 
     def on_press(self):
         owned_tokens = self.parent.parent.current_player.owned_tokens.tokens
-        popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens, caller=self)
+        popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens,
+                                   caller_displayed_cards=self)
         popup.open()
 
     def show_cards(self):
