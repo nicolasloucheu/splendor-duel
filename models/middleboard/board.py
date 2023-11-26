@@ -121,6 +121,7 @@ class Board(RelativeLayout):
 
     def update_board(self, *args):
         self.clear_widgets()
+        self.canvas.clear()
         self.draw_board()
         self.color_clicked_cells()
         self.generate_not_clickable_cells()
@@ -266,15 +267,13 @@ class Board(RelativeLayout):
             self.confirm_pos = (confirm_x, confirm_y)
 
     def add_confirmation_to_pick(self):
-        with self.canvas:
-            Color(1, 0, 0, 1, mode='rgba')
-            confirmation_button = Button(
-                pos=(self.confirm_pos[0], self.confirm_pos[1]),
-                size_hint=(None, None),
-                size=(self.width_confirm_cell, self.height_confirm_cell)
-            )
-            confirmation_button.bind(on_press=self.confirmation_button_pressed)
-            self.add_widget(confirmation_button)
+        confirmation_button = Button(
+            pos=(self.confirm_pos[0], self.confirm_pos[1]),
+            size_hint=(None, None),
+            size=(self.width_confirm_cell, self.height_confirm_cell)
+        )
+        confirmation_button.bind(on_press=self.confirmation_button_pressed)
+        self.add_widget(confirmation_button)
 
     def confirmation_button_pressed(self, instance):
         self.parent.parent.current_player.owned_tokens.update_tokens(self.clicked_cells_gemtype)
