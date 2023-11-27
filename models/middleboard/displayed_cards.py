@@ -12,7 +12,7 @@ class CardButton(Button):
         super(CardButton, self).__init__(**kwargs)
         self.card = card
         self.disabled = disabled
-        card_text = self.get_card_text(self.card)
+        card_text = self.get_card_text()
         self.text = card_text
         self.caller_displayed_cards = caller_displayed_cards
 
@@ -24,43 +24,55 @@ class CardButton(Button):
             # current_player.owned_cards.get_card_widget(self.card.color).add_card(self.card)
             self.caller_displayed_cards.draw_card(self.card)
 
-    def get_card_text(self, card):
+    def get_card_text(self):
         return (
-            f'ID: {card.card_id}\n'
-            f'Color: {card.value} {card.color}\n'
-            f'Victory points: {card.victory_points}\n'
-            f'Crowns: {card.crowns}\n'
-            f'Special effect: {card.special_effect}\n\n'
-            f'Cost:\n{self.display_cost(card)}\n'
+            f'ID: {self.card.card_id}\n'
+            f'Color: {self.card.value} {self.card.color}\n'
+            f'Victory points: {self.card.victory_points}\n'
+            f'Crowns: {self.card.crowns}\n'
+            f'Special effect: {self.card.special_effect}\n\n'
+            f'Cost:\n{self.display_cost()}\n'
         )
 
-    @staticmethod
-    def display_cost(card):
-        return '\n'.join([f'- {color}: {value}' for color, value in card.cost.items()])
+    def display_cost(self):
+        return '\n'.join([f'- {color}: {value}' for color, value in self.card.cost.items()])
 
 
 class DisplayedCardPopupCard(BoxLayout):
     def __init__(self, cards=None, owned_tokens=None, caller_displayed_cards=None, **kwargs):
         super(DisplayedCardPopupCard, self).__init__(**kwargs)
         self.orientation = 'horizontal'
-        self.build_ui(cards, owned_tokens, caller_displayed_cards)
+        self.cards = cards
+        self.owned_tokens = owned_tokens
+        self.caller_displayed_cards = caller_displayed_cards
+        self.build_ui()
 
-    def build_ui(self, cards, owned_tokens, caller_displayed_cards):
-        for card in cards:
-            enough_tokens = self.compute_has_enough_tokens(card, owned_tokens)
-            card_button = CardButton(card=card, disabled=not enough_tokens, caller_displayed_cards=caller_displayed_cards)
+    def build_ui(self):
+        for card in self.cards:
+            enough_tokens = self.compute_has_enough_tokens(card=card)
+            card_button = CardButton(card=card, disabled=not enough_tokens,
+                                     caller_displayed_cards=self.caller_displayed_cards)
             self.add_widget(card_button)
 
-    @staticmethod
-    def compute_has_enough_tokens(card, owned_tokens):
-        jokers = owned_tokens[GemType.GOLD]
+    def compute_has_enough_tokens(self, card):
+        color_card_in_hand = self.is_there_any_color_card_in_hand()
+        jokers = self.owned_tokens[GemType.GOLD]
         for color, required_tokens in card.cost.items():
-            available_tokens = owned_tokens[color]
+            available_tokens = self.owned_tokens[color]
             delta_token = max(0, required_tokens - available_tokens)
             jokers -= delta_token
             if jokers < 0:
                 return False
+            if card.color == GemType.ANY and not color_card_in_hand:
+                return False
         return True
+
+    def is_there_any_color_card_in_hand(self):
+        owned_cards = self.caller_displayed_cards.parent.parent.current_player.owned_cards
+        for color_cards in owned_cards.card_widgets.values():
+            if len(color_cards.cards) > 0:
+                return True
+        return False
 
 
 class DisplayedCardPopup(Popup):
@@ -91,7 +103,7 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
     def on_press(self):
         owned_tokens = self.parent.parent.current_player.owned_tokens.tokens
         self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens,
-                                   caller_displayed_cards=self)
+                                        caller_displayed_cards=self)
         self.popup.open()
 
     def show_cards(self):
