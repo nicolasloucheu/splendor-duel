@@ -1,6 +1,8 @@
-from enum import Enum
 import random
+from enum import Enum
 
+from kivy.clock import Clock
+from kivy.graphics import Color, Rectangle, Line
 from kivy.uix.boxlayout import BoxLayout
 
 from models.middleboard.middleboard import MiddleBoard
@@ -20,7 +22,6 @@ class TurnState(Enum):
 
 
 class Game(BoxLayout):
-
     def __init__(self, **kwargs):
         super(Game, self).__init__(**kwargs)
 
@@ -40,17 +41,35 @@ class Game(BoxLayout):
         self.game_state = GameState.START
         self.turn_state = None
         self.turn = None
+        self.rectangle_instruction = None  # Store the instruction id for the rectangle
 
         self.start_game()
 
     def start_game(self):
         self.game_state = GameState.PLAYING
-        self.start_turn()
+        Clock.schedule_once(self.start_turn, 0)
 
-    def start_turn(self):
-        print(f"{self.current_player}'s turn")
+    def start_turn(self, *args):
+        self.draw_current_player()
 
     def end_turn(self):
         self.turn_state = TurnState.END
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
-        self.start_turn()
+        Clock.schedule_once(self.start_turn, 0)
+
+    def draw_current_player(self):
+        if self.rectangle_instruction is not None:
+            self.canvas.remove(self.rectangle_instruction)
+
+        with self.canvas:
+            Color(0, 1, 0, 1)
+            self.rectangle_instruction = Line(
+                rectangle=(
+                    self.current_player.pos[0],
+                    self.current_player.pos[1],
+                    self.current_player.size[0],
+                    self.current_player.size[1],
+                ),
+                width=2,
+            )
+

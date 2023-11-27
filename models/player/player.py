@@ -1,4 +1,3 @@
-from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 
 from models.player.owned_cards import OwnedCards
@@ -28,4 +27,4 @@ class Player(GridLayout):
         self.add_widget(reserved_cards)
 
     def __str__(self):
-        return self.name
+        return f'{self.name}'
