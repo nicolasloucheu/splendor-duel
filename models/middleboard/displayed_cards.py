@@ -17,11 +17,12 @@ class CardButton(Button):
         self.caller_displayed_cards = caller_displayed_cards
 
     def on_press(self):
-        current_player = self.caller_displayed_cards.parent.parent.current_player
+        # current_player = self.caller_displayed_cards.parent.parent.current_player
         if self.card.color == GemType.ANY:
             pass
         else:
-            current_player.owned_cards.get_card_widget(self.card.color).add_card(self.card)
+            # current_player.owned_cards.get_card_widget(self.card.color).add_card(self.card)
+            self.caller_displayed_cards.draw_card(self.card)
 
     def get_card_text(self, card):
         return (
@@ -83,16 +84,18 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         self.cards = [None] * self.max_cards
         self.level = level
         self.deck = deck
+        self.popup = None
         self.fill_cards()
         self.show_cards()
 
     def on_press(self):
         owned_tokens = self.parent.parent.current_player.owned_tokens.tokens
-        popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens,
+        self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens,
                                    caller_displayed_cards=self)
-        popup.open()
+        self.popup.open()
 
     def show_cards(self):
+        self.clear_widgets()
         for card in self.cards:
             label_text = f'Card level {card.level} (id: {card.card_id})'
             label = Label(text=label_text)
@@ -103,8 +106,18 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
             if self.cards[card_position] is None:
                 self.cards[card_position] = self.deck.draw_card()
 
-    def draw_card(self, card_position):
-        return self.cards.pop(card_position)
+    def remove_card(self, card):
+        self.cards = [None if x == card else x for x in self.cards]
+
+    def draw_card(self, card):
+        current_player = self.parent.parent.current_player
+        # card = self.cards.pop(selected_card)
+        current_player.owned_cards.get_card_widget(card.color).add_card(card)
+        self.remove_card(card)
+        self.fill_cards()
+        self.show_cards()
+        self.popup.dismiss()
+        self.parent.parent.end_turn()
 
     def __str__(self):
         return f'{self.cards}'
