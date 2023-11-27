@@ -17,11 +17,11 @@ class CardButton(Button):
         self.caller_displayed_cards = caller_displayed_cards
 
     def on_press(self):
-        print(f'Card pressed: {self.card}')
-        print(f'Card color: {self.card.color}')
         current_player = self.caller_displayed_cards.parent.parent.current_player
-        print(f'Current player: {current_player}')
-        current_player.owned_cards.get_card_widget(self.card.color).add_card(self.card)
+        if self.card.color == GemType.ANY:
+            pass
+        else:
+            current_player.owned_cards.get_card_widget(self.card.color).add_card(self.card)
 
     def get_card_text(self, card):
         return (

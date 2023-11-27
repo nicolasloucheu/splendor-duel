@@ -37,7 +37,7 @@ class OwnedCards(BoxLayout):
         super(OwnedCards, self).__init__(**kwargs)
         self.card_widgets = {}
         for color in GemType:
-            if color != GemType.GOLD:
+            if color != GemType.GOLD and color != GemType.ANY:
                 card = OwnedCardBox(orientation='vertical', color=color)
                 self.card_widgets[color] = card
                 self.add_widget(card)
