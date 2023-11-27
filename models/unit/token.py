@@ -12,7 +12,7 @@ class GemType(Enum):
     ANY = 8
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name.lower()}'
 
 
 class Token:

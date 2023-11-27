@@ -22,8 +22,8 @@ class Player(GridLayout):
         self.add_widget(self.owned_tokens)
         owned_scrolls = OwnedScrolls(size_hint=size_top)
         self.add_widget(owned_scrolls)
-        owned_cards = OwnedCards()
-        self.add_widget(owned_cards)
+        self.owned_cards = OwnedCards()
+        self.add_widget(self.owned_cards)
         reserved_cards = Reserved(reserved_cards=reserved_cards)
         self.add_widget(reserved_cards)
 

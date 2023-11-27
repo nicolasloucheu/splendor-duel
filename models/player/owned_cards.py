@@ -1,51 +1,47 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 
+from models import GemType
+
+
+class OwnedCardBox(BoxLayout):
+    def __init__(self, color=None, **kwargs):
+        super(OwnedCardBox, self).__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.color = color
+        self.num_tokens = 0
+        self.victory_points = 0
+        self.cards = []
+        self.build_ui()
+
+    def add_card(self, card):
+        self.cards.append(card)
+        self.update_cards(self.cards)
+
+    def update_cards(self, cards):
+        self.cards = cards
+        self.num_tokens = sum([card.value for card in cards])
+        self.victory_points = sum([card.victory_points for card in cards])
+        self.clear_widgets()
+        self.build_ui()
+
+    def build_ui(self):
+        self.add_widget(Label(text=f'{self.color}'))
+        self.add_widget(Label(text=f'tokens: {self.num_tokens}'))
+        self.add_widget(Label(text=f'points: {self.victory_points}'))
+
 
 class OwnedCards(BoxLayout):
 
     def __init__(self, **kwargs):
         super(OwnedCards, self).__init__(**kwargs)
-        red_cards = BoxLayout(orientation='vertical')
-        red_label = Label(text='red')
-        red_num = Label(text='num=0')
-        red_points = Label(text='points=0')
-        red_cards.add_widget(red_label)
-        red_cards.add_widget(red_num)
-        red_cards.add_widget(red_points)
-        self.add_widget(red_cards)
-        green_cards = BoxLayout(orientation='vertical')
-        green_label = Label(text='green')
-        green_num = Label(text='num=0')
-        green_points = Label(text='points=0')
-        green_cards.add_widget(green_label)
-        green_cards.add_widget(green_num)
-        green_cards.add_widget(green_points)
-        self.add_widget(green_cards)
-        blue_cards = BoxLayout(orientation='vertical')
-        blue_label = Label(text='blue')
-        blue_num = Label(text='num=0')
-        blue_points = Label(text='points=0')
-        blue_cards.add_widget(blue_label)
-        blue_cards.add_widget(blue_num)
-        blue_cards.add_widget(blue_points)
-        self.add_widget(blue_cards)
-        black_cards = BoxLayout(orientation='vertical')
-        black_label = Label(text='black')
-        black_num = Label(text='num=0')
-        black_points = Label(text='points=0')
-        black_cards.add_widget(black_label)
-        black_cards.add_widget(black_num)
-        black_cards.add_widget(black_points)
-        self.add_widget(black_cards)
-        white_cards = BoxLayout(orientation='vertical')
-        white_label = Label(text='white')
-        white_num = Label(text='num=0')
-        white_points = Label(text='points=0')
-        white_cards.add_widget(white_label)
-        white_cards.add_widget(white_num)
-        white_cards.add_widget(white_points)
-        self.add_widget(white_cards)
+        self.card_widgets = {}
+        for color in GemType:
+            if color != GemType.GOLD:
+                card = OwnedCardBox(orientation='vertical', color=color)
+                self.card_widgets[color] = card
+                self.add_widget(card)
+
         neutral_cards = BoxLayout(orientation='vertical')
         neutral_label = Label(text='neutral')
         neutral_points = Label(text='points=0')
@@ -59,3 +55,6 @@ class OwnedCards(BoxLayout):
         points_crowns.add_widget(total_points)
         points_crowns.add_widget(total_crowns)
         self.add_widget(points_crowns)
+
+    def get_card_widget(self, color):
+        return self.card_widgets.get(color)
