@@ -1,9 +1,10 @@
+from kivy.config import Config
+Config.set('graphics', 'width', '1920')
+Config.set('graphics', 'height', '720')
+
 from kivy.app import App
-from kivy.core.window import Window
 
 from models.game import Game
-
-Window.size = (1920, 720)
 
 
 class SplendorApp(App):
