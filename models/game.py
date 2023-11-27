@@ -6,6 +6,7 @@ from kivy.uix.boxlayout import BoxLayout
 
 from models.middleboard.middleboard import MiddleBoard
 from models.player.player import Player
+from models.unit.tokenbag import TokenBag
 
 
 class GameState(Enum):
@@ -30,8 +31,9 @@ class Game(BoxLayout):
         self.player2 = Player(reserved_cards=[], name='player2')
         self.add_widget(self.player2)
 
-        middleboard = MiddleBoard()
-        self.add_widget(middleboard)
+        self.tokenbag = TokenBag()
+        self.middleboard = MiddleBoard(tokenbag=self.tokenbag)
+        self.add_widget(self.middleboard)
 
         self.player1 = Player(reserved_cards=[], name='player1')
         self.add_widget(self.player1)

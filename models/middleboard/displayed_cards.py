@@ -125,6 +125,7 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         current_player = self.parent.parent.current_player
         # card = self.cards.pop(selected_card)
         current_player.owned_cards.get_card_widget(card.color).add_card(card)
+        current_player.owned_tokens.remove_tokens(card.cost)
         self.remove_card(card)
         self.fill_cards()
         self.show_cards()

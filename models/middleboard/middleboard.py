@@ -10,15 +10,15 @@ from models.middleboard.scrolls import Scrolls
 
 class MiddleBoard(BoxLayout):
 
-    def __init__(self, **kwargs):
+    def __init__(self, tokenbag=None, **kwargs):
         super(MiddleBoard, self).__init__(**kwargs)
         self.cards_size = (.25, 1)
         crown_cards = CrownCards(deck=Deck(db_cards=CROWN_CARDS), size_hint=self.cards_size)
         self.add_widget(crown_cards)
         scrolls = Scrolls(size_hint=(.25, 1))
         self.add_widget(scrolls)
-        board = Board()
-        self.add_widget(board)
+        self.board = Board(tokenbag=tokenbag)
+        self.add_widget(self.board)
         displayed_cards1 = DisplayedCards(max_cards=5, level=1, deck=Deck(db_cards=LEVEL1_CARDS), size_hint=self.cards_size)
         self.add_widget(displayed_cards1)
         displayed_cards2 = DisplayedCards(max_cards=4, level=2, deck=Deck(db_cards=LEVEL2_CARDS), size_hint=self.cards_size)

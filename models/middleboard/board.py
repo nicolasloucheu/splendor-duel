@@ -5,7 +5,6 @@ from kivy.uix.image import Image
 from kivy.uix.relativelayout import RelativeLayout
 
 from models.unit.token import Token, GemType
-from models.unit.tokenbag import TokenBag
 
 
 def find_index(target_value, matrix):
@@ -79,24 +78,20 @@ class ImageButton(ButtonBehavior, Image):
 
 
 class Board(RelativeLayout):
-    board_gems = None
-    clicked_cells = []
-    clicked_cells_gemtype = []
-    cell_size = (0, 0)
-    not_clickable_cells_pos = []
-    not_clickable_cells_index = []
-
-    width_confirm_cell = .4 * cell_size[0]
-    height_confirm_cell = .4 * cell_size[1]
-
-    confirm_pos = None
-
-    def __init__(self, **kwargs):
+    def __init__(self, tokenbag=None, **kwargs):
         super(Board, self).__init__(**kwargs)
         self.bind(size=self.on_window_resize)
         self.cols = 5
         self.rows = 5
-        self.tokenbag = TokenBag()
+
+        self.clicked_cells = []
+        self.clicked_cells_gemtype = []
+        self.not_clickable_cells_pos = []
+        self.not_clickable_cells_index = []
+        self.confirm_pos = None
+
+        self.cell_size = (self.width / self.cols, self.height / self.rows)
+
         self.index_board = [
             [21, 22, 23, 24, 25],
             [20, 7, 8, 9, 10],
@@ -105,9 +100,8 @@ class Board(RelativeLayout):
             [17, 16, 15, 14, 13]
         ]
         self.board_gems = [[Token(gem_type=GemType.ANY)] * 5 for _ in range(5)]
-        self.fill(self.tokenbag)
 
-        self.cell_size = (self.width / self.cols, self.height / self.rows)
+        self.fill(tokenbag)
 
     def fill(self, tokenbag=None):
         for current_position in range(1, 26):
@@ -276,7 +270,7 @@ class Board(RelativeLayout):
         self.add_widget(confirmation_button)
 
     def confirmation_button_pressed(self, instance):
-        self.parent.parent.current_player.owned_tokens.update_tokens(self.clicked_cells_gemtype)
+        self.parent.parent.current_player.owned_tokens.add_tokens(self.clicked_cells_gemtype)
         for position in self.clicked_cells:
             self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
 
@@ -290,6 +284,3 @@ class Board(RelativeLayout):
 
     def on_window_resize(self, instance, value):
         self.update_board()
-
-    def __str__(self):
-        return f'{self.board_gems}'
