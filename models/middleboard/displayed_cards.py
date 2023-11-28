@@ -7,7 +7,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 
-from models import GemType, Card
+from models import GemType
 
 
 class ColorButton(Button):
@@ -32,10 +32,9 @@ class AnyCardPopupCard(BoxLayout):
     """
     The layout for displaying color choices in the AnyCardPopup.
     """
-    def __init__(self, owned_cards=None, caller_displayed_cards=None, card=None, **kwargs):
+    def __init__(self, caller_displayed_cards=None, card=None, **kwargs):
         super(AnyCardPopupCard, self).__init__(**kwargs)
         self.orientation = 'horizontal'
-        self.owned_cards = owned_cards
         self.caller_displayed_cards = caller_displayed_cards
         self.card = card
         self.build_ui()
@@ -44,16 +43,16 @@ class AnyCardPopupCard(BoxLayout):
         """
         Build the UI with ColorButton widgets for each available color.
         """
-        color_list = self.get_non_null(self.owned_cards)
+        color_list = self.get_non_null()
         for color in color_list:
             card_button = ColorButton(color=color, caller_displayed_cards=self.caller_displayed_cards, card=self.card)
             self.add_widget(card_button)
 
-    @staticmethod
-    def get_non_null(owned_cards):
+    def get_non_null(self):
         """
-        Get a list of non-null colors from the owned cards.
+        Get a list of non-null colors from the current player's owned cards.
         """
+        owned_cards = self.caller_displayed_cards.parent.parent.current_player.owned_cards
         owned_colors = []
         for color in GemType:
             if color != GemType.GOLD and color != GemType.ANY:
@@ -67,14 +66,13 @@ class AnyCardPopup(Popup):
     """
     Popup for selecting a color when drawing a card with type ANY.
     """
-    def __init__(self, owned_cards=None, caller_displayed_cards=None, card=None, **kwargs):
+    def __init__(self, caller_displayed_cards=None, card=None, **kwargs):
         super(AnyCardPopup, self).__init__(**kwargs)
         self.title = f'Which color should be this card?'
         self.size_hint = (.3, .3)
         self.auto_dismiss = True
         self.caller_displayed_cards = caller_displayed_cards
-        popup_card = AnyCardPopupCard(owned_cards=owned_cards, caller_displayed_cards=self.caller_displayed_cards,
-                                      card=card)
+        popup_card = AnyCardPopupCard(caller_displayed_cards=self.caller_displayed_cards, card=card)
         self.add_widget(popup_card)
 
 
@@ -120,11 +118,10 @@ class DisplayedCardPopupCard(BoxLayout):
     """
     The layout for displaying cards in the DisplayedCardPopup.
     """
-    def __init__(self, cards=None, owned_tokens=None, caller_displayed_cards=None, **kwargs):
+    def __init__(self, cards=None, caller_displayed_cards=None, **kwargs):
         super(DisplayedCardPopupCard, self).__init__(**kwargs)
         self.orientation = 'horizontal'
         self.cards = cards
-        self.owned_tokens = owned_tokens
         self.caller_displayed_cards = caller_displayed_cards
         self.build_ui()
 
@@ -142,11 +139,14 @@ class DisplayedCardPopupCard(BoxLayout):
         """
         Check if the player has enough tokens to buy the card.
         """
+        owned_tokens = self.caller_displayed_cards.parent.parent.current_player.owned_tokens.tokens
+        owned_cards = self.caller_displayed_cards.parent.parent.current_player.owned_cards
         color_card_in_hand = self.is_there_any_color_card_in_hand()
-        jokers = self.owned_tokens[GemType.GOLD]
+        jokers = owned_tokens[GemType.GOLD]
         for color, required_tokens in card.cost.items():
-            available_tokens = self.owned_tokens[color]
-            delta_token = max(0, required_tokens - available_tokens)
+            num_card_color = owned_cards.get_card_widget(color).num_tokens
+            available_tokens = owned_tokens[color]
+            delta_token = max(0, required_tokens - available_tokens - num_card_color)
             jokers -= delta_token
             if jokers < 0:
                 return False
@@ -156,7 +156,8 @@ class DisplayedCardPopupCard(BoxLayout):
 
     def is_there_any_color_card_in_hand(self):
         """
-        Check if there is any color card in the player's hand.
+        Check if there is any color card in the player's hand. This is used to know when card ANY can be bought
+        (a color has to be already owned by the user).
         """
         owned_cards = self.caller_displayed_cards.parent.parent.current_player.owned_cards
         for color_cards in owned_cards.card_widgets.values():
@@ -169,19 +170,18 @@ class DisplayedCardPopup(Popup):
     """
     Popup for displaying cards in the game.
     """
-    def __init__(self, level=None, cards=None, owned_tokens=None, caller_displayed_cards=None, **kwargs):
+    def __init__(self, level=None, cards=None, caller_displayed_cards=None, **kwargs):
         super(DisplayedCardPopup, self).__init__(**kwargs)
         self.title = f'Cards level {level}'
         self.size_hint = (.8, .8)
         self.auto_dismiss = True
-        popup_card = DisplayedCardPopupCard(cards=cards, owned_tokens=owned_tokens,
-                                            caller_displayed_cards=caller_displayed_cards)
+        popup_card = DisplayedCardPopupCard(cards=cards, caller_displayed_cards=caller_displayed_cards)
         self.add_widget(popup_card)
 
 
 class DisplayedCards(ButtonBehavior, BoxLayout):
     """
-    The layout for displaying a set of cards in the game.
+    The layout for displaying a set of cards in the game, on the right of the board.
     """
     cards = None
 
@@ -199,11 +199,10 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
 
     def on_press(self):
         """
-        Triggered when the button is pressed.
+        Triggered when the user clicks on a set of cards.
         """
         owned_tokens = self.parent.parent.current_player.owned_tokens.tokens
-        self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, owned_tokens=owned_tokens,
-                                        caller_displayed_cards=self)
+        self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, caller_displayed_cards=self)
         self.popup.open()
 
     def show_cards(self):

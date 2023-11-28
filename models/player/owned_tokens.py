@@ -19,13 +19,13 @@ class OwnedTokens(BoxLayout):
         self.update_widgets()
 
     def remove_tokens(self, tokens_dict_to_pay=None):
-        for key in self.tokens:
-            if key in tokens_dict_to_pay:
-                if self.tokens[key] < tokens_dict_to_pay[key]:
-                    self.tokens[GemType.GOLD] -= tokens_dict_to_pay[key] - self.tokens[key]
-                    self.tokens[key] = 0
-                else:
-                    self.tokens[key] -= tokens_dict_to_pay[key]
+        for color in tokens_dict_to_pay:
+            owned_color = self.parent.owned_cards.get_card_widget(color).num_tokens
+            if self.tokens[color] < tokens_dict_to_pay[color] - owned_color:
+                self.tokens[GemType.GOLD] -= tokens_dict_to_pay[color] - self.tokens[color]
+                self.tokens[color] = 0
+            else:
+                self.tokens[color] -= tokens_dict_to_pay[color] - owned_color
         self.update_widgets()
 
     def update_widgets(self):
@@ -36,3 +36,6 @@ class OwnedTokens(BoxLayout):
                 token_color = Label(text=str(self.tokens[color]) + ' ' + str(color))
                 self.token_widgets[color] = token_color
                 self.add_widget(token_color)
+
+    def get_tokens_widget(self, color):
+        return self.token_widgets.get(color)
