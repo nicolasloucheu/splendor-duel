@@ -13,6 +13,8 @@ class TotalPointsCrowns(BoxLayout):
         self.build_ui()
 
     def update_points_crowns(self):
+        self.total_points = 0
+        self.total_crowns = 0
         for color in GemType:
             if color != GemType.GOLD and color != GemType.ANY:
                 color_card = self.parent.get_card_widget(color)
@@ -39,7 +41,6 @@ class OwnedCardBox(BoxLayout):
 
     def add_card(self, card):
         self.cards.append(card)
-
         self.apply_special_effect(card)
         self.update_cards()
 

@@ -237,28 +237,29 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
             Clock.schedule_once(partial(self.open_any_card_popup, card), 0.1)
         else:
             # Continue with the rest of the draw_card logic for other card types
-            current_player = self.parent.parent.current_player
-            current_player.owned_cards.get_card_widget(card.color).add_card(card)
-            current_player.owned_tokens.remove_tokens(card.cost)
             self.remove_card(card)
             self.fill_cards()
             self.show_cards()
             self.popup.dismiss()
+
+            current_player = self.parent.parent.current_player
+            current_player.owned_cards.get_card_widget(card.color).add_card(card)
+            current_player.owned_tokens.remove_tokens(card.cost)
             self.parent.parent.end_turn()
 
     def draw_card_any(self, card, color):
         """
         Draw a card with type ANY and update the layout accordingly.
         """
-        current_player = self.parent.parent.current_player
-        card.color = color
-        current_player.owned_cards.get_card_widget(card.color).add_card(card)
-        current_player.owned_tokens.remove_tokens(card.cost)
         self.remove_card(card)
         self.fill_cards()
         self.show_cards()
         self.popup_color.dismiss()
         self.popup.dismiss()
+        current_player = self.parent.parent.current_player
+        card.color = color
+        current_player.owned_cards.get_card_widget(card.color).add_card(card)
+        current_player.owned_tokens.remove_tokens(card.cost)
         self.parent.parent.end_turn()
 
     def open_any_card_popup(self, card, dt):
