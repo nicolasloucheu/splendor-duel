@@ -265,8 +265,7 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         """
         Open the AnyCardPopup after a short delay.
         """
-        self.popup_color = AnyCardPopup(owned_cards=self.parent.parent.current_player.owned_cards, card=card,
-                                        caller_displayed_cards=self)
+        self.popup_color = AnyCardPopup(card=card, caller_displayed_cards=self)
         self.popup_color.open()
 
     def __str__(self):
