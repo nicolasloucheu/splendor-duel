@@ -4,6 +4,28 @@ from kivy.uix.label import Label
 from models import GemType
 
 
+class TotalPointsCrowns(BoxLayout):
+    def __init__(self, **kwargs):
+        super(TotalPointsCrowns, self).__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.total_points = 0
+        self.total_crowns = 0
+        self.build_ui()
+
+    def update_points_crowns(self):
+        for color in GemType:
+            if color != GemType.GOLD and color != GemType.ANY:
+                color_card = self.parent.get_card_widget(color)
+                self.total_points += color_card.victory_points
+                self.total_crowns += color_card.crowns
+        self.clear_widgets()
+        self.build_ui()
+
+    def build_ui(self):
+        self.add_widget(Label(text=f'total points={self.total_points}'))
+        self.add_widget(Label(text=f'crowns={self.total_crowns}'))
+
+
 class OwnedCardBox(BoxLayout):
     def __init__(self, color=None, **kwargs):
         super(OwnedCardBox, self).__init__(**kwargs)
@@ -11,6 +33,7 @@ class OwnedCardBox(BoxLayout):
         self.color = color
         self.num_tokens = 0
         self.victory_points = 0
+        self.crowns = 0
         self.cards = []
         self.build_ui()
 
@@ -22,8 +45,11 @@ class OwnedCardBox(BoxLayout):
         self.cards = cards
         self.num_tokens = sum([card.value for card in cards])
         self.victory_points = sum([card.victory_points for card in cards])
+        self.crowns = sum([card.crowns for card in cards])
+        print(self.crowns)
         self.clear_widgets()
         self.build_ui()
+        self.parent.points_crowns.update_points_crowns()
 
     def build_ui(self):
         self.add_widget(Label(text=f'{self.color}'))
@@ -42,19 +68,12 @@ class OwnedCards(BoxLayout):
                 self.card_widgets[color] = card
                 self.add_widget(card)
 
-        neutral_cards = BoxLayout(orientation='vertical')
-        neutral_label = Label(text='neutral')
-        neutral_points = Label(text='points=0')
-        neutral_cards.add_widget(neutral_label)
-        neutral_cards.add_widget(Label())
-        neutral_cards.add_widget(neutral_points)
-        self.add_widget(neutral_cards)
-        points_crowns = BoxLayout(orientation='vertical')
-        total_points = Label(text='total points=0')
-        total_crowns = Label(text='crowns=0')
-        points_crowns.add_widget(total_points)
-        points_crowns.add_widget(total_crowns)
-        self.add_widget(points_crowns)
+        card = OwnedCardBox(orientation='vertical', color='neutral')
+        self.card_widgets['neutral'] = card
+        self.add_widget(card)
+
+        self.points_crowns = TotalPointsCrowns()
+        self.add_widget(self.points_crowns)
 
     def get_card_widget(self, color):
         return self.card_widgets.get(color)

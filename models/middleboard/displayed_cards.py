@@ -201,7 +201,6 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         """
         Triggered when the user clicks on a set of cards.
         """
-        owned_tokens = self.parent.parent.current_player.owned_tokens.tokens
         self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, caller_displayed_cards=self)
         self.popup.open()
 
