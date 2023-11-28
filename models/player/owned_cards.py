@@ -46,7 +46,6 @@ class OwnedCardBox(BoxLayout):
         self.num_tokens = sum([card.value for card in cards])
         self.victory_points = sum([card.victory_points for card in cards])
         self.crowns = sum([card.crowns for card in cards])
-        print(self.crowns)
         self.clear_widgets()
         self.build_ui()
         self.parent.points_crowns.update_points_crowns()
@@ -58,7 +57,6 @@ class OwnedCardBox(BoxLayout):
 
 
 class OwnedCards(BoxLayout):
-
     def __init__(self, **kwargs):
         super(OwnedCards, self).__init__(**kwargs)
         self.card_widgets = {}
