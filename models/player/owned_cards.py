@@ -1,7 +1,7 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 
-from models import GemType
+from models import GemType, SpecialEffect
 
 
 class TotalPointsCrowns(BoxLayout):
@@ -39,16 +39,38 @@ class OwnedCardBox(BoxLayout):
 
     def add_card(self, card):
         self.cards.append(card)
-        self.update_cards(self.cards)
 
-    def update_cards(self, cards):
-        self.cards = cards
-        self.num_tokens = sum([card.value for card in cards])
-        self.victory_points = sum([card.victory_points for card in cards])
-        self.crowns = sum([card.crowns for card in cards])
+        self.apply_special_effect(card)
+        self.update_cards()
+
+    def update_cards(self):
+        self.cards = self.cards
+        self.num_tokens = sum([card.value for card in self.cards])
+        self.victory_points = sum([card.victory_points for card in self.cards])
+        self.crowns = sum([card.crowns for card in self.cards])
         self.clear_widgets()
         self.build_ui()
         self.parent.points_crowns.update_points_crowns()
+
+    def apply_special_effect(self, card):
+        if card.special_effect == SpecialEffect.PLAY_AGAIN:
+            current_player = self.parent.parent.parent.current_player
+            player1 = self.parent.parent.parent.player1
+            player2 = self.parent.parent.parent.player2
+            self.parent.parent.parent.current_player = player1 if current_player == player2 else player2
+        elif card.special_effect == SpecialEffect.TAKE_SAME_COLOR:
+            print('take same color')
+            pass
+        elif card.special_effect == SpecialEffect.TAKE_SCROLL:
+            if self.parent.parent.parent.middleboard.scrolls.scrolls > 0:
+                self.parent.parent.parent.middleboard.scrolls.take_scroll()
+                self.parent.parent.parent.current_player.owned_scrolls.take_scroll()
+            elif self.parent.parent.parent.opponent.owned_scrolls.scrolls > 0:
+                self.parent.parent.parent.opponent.owned_scrolls.use_scroll()
+                self.parent.parent.parent.current_player.owned_scrolls.scrolls.take_scroll()
+        elif card.special_effect == SpecialEffect.TAKE_OPPONENT_TOKEN:
+            print('take opponent token')
+            pass
 
     def build_ui(self):
         self.add_widget(Label(text=f'{self.color}'))

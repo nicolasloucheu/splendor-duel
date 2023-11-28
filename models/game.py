@@ -40,6 +40,7 @@ class Game(BoxLayout):
         self.add_widget(self.player1)
 
         self.current_player = random.choice([self.player1, self.player2])
+        self.opponent = self.player1 if self.current_player == self.player2 else self.player2
         self.game_state = GameState.START
         self.turn_state = None
         self.turn = None
@@ -57,6 +58,7 @@ class Game(BoxLayout):
     def end_turn(self):
         self.turn_state = TurnState.END
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
+        self.opponent = self.player1 if self.current_player == self.player2 else self.player2
         self.start_turn()
 
     def draw_current_player(self, dt):

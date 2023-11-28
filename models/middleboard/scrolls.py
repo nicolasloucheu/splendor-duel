@@ -9,19 +9,23 @@ class Scrolls(Widget):
         super(Scrolls, self).__init__(**kwargs)
         self.scrolls = 3
         self.orientation = 'vertical'
-        self.circe_size = dp(20)
-        self.circle1 = Ellipse(size=(self.circe_size, self.circe_size))
-        self.circle2 = Ellipse(size=(self.circe_size, self.circe_size))
-        self.circle3 = Ellipse(size=(self.circe_size, self.circe_size))
-        self.circles = [self.circle1, self.circle2, self.circle3]
-        self.canvas.add(self.circle1)
-        self.canvas.add(self.circle2)
-        self.canvas.add(self.circle3)
+        self.circle_size = dp(20)
+        self.circle_instructions = []
+        self.circle_instruction = None
+        self.update_scrolls()
 
     def on_size(self, *args):
-        circle_positions = [(self.center_x - dp(10), Window.size[1] * i / 10 - dp(10)) for i in range(4, 4 + self.scrolls)]
-        for circle, position in zip(self.circles, circle_positions):
-            circle.pos = position
+        self.update_scrolls()
 
-    def draw_scroll(self):
+    def update_scrolls(self):
+        self.canvas.clear()
+        for i in range(1, self.scrolls + 1):
+            y_position = self.height * i / (self.scrolls + 1) - self.circle_size / 2
+            position = (self.center_x - self.circle_size / 2, self.y + y_position)
+            self.circle_instruction = Ellipse(size=(self.circle_size, self.circle_size), pos=position)
+            self.circle_instructions.append(self.circle_instruction)
+            self.canvas.add(self.circle_instruction)
+
+    def take_scroll(self):
         self.scrolls -= 1
+        self.update_scrolls()
