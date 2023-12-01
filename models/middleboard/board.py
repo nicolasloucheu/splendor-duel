@@ -1,3 +1,21 @@
+"""
+Splendor Board Game: Board Module
+
+This module defines the Board component of the Splendor board game using the Kivy framework.
+
+Classes:
+- ImageButton: Represents a clickable image button of a token, used for game interaction.
+- Board: Represents the game board and manages its state and appearance.
+
+Functions:
+- find_index: Finds the index of a target value in a matrix.
+- find_common_elements: Finds common elements among multiple lists.
+- get_opposite_diagonal: Calculates opposite diagonal cells between two given cells.
+
+Note: This code assumes that the Token, GemType, and other necessary classes are already defined in separate modules.
+
+"""
+
 from kivy.graphics import Rectangle, Color
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.button import Button
@@ -8,6 +26,16 @@ from models.unit.token import Token, GemType
 
 
 def find_index(target_value, matrix):
+    """
+    Find the index of a target value in a matrix.
+
+    Args:
+    - target_value (int): The value to find in the matrix.
+    - matrix (list of lists): The matrix to search for the target value.
+
+    Yields:
+    - tuple: The row and column indices of the target value in the matrix.
+    """
     for row_index, row in enumerate(matrix):
         try:
             column_index = row.index(target_value)
@@ -17,6 +45,15 @@ def find_index(target_value, matrix):
 
 
 def find_common_elements(*lists_with_board):
+    """
+    Find common elements among multiple lists.
+
+    Args:
+    - *lists_with_board (list of lists): Lists containing elements to find common elements.
+
+    Returns:
+    - list: List of common elements found in the input lists.
+    """
     lists = lists_with_board[1:]
     if not lists:
         return []
@@ -31,6 +68,16 @@ def find_common_elements(*lists_with_board):
 
 
 def get_opposite_diagonal(cell1, cell2):
+    """
+    Calculate opposite diagonal cells between two given cells.
+
+    Args:
+    - cell1 (tuple): Row and column indices of the first cell.
+    - cell2 (tuple): Row and column indices of the second cell.
+
+    Returns:
+    - tuple: Two tuples representing opposite diagonal cells.
+    """
     row1, col1 = cell1
     row2, col2 = cell2
 
@@ -41,24 +88,61 @@ def get_opposite_diagonal(cell1, cell2):
 
 
 class ImageButton(ButtonBehavior, Image):
+    """
+    Represents a clickable image button containing a token, used for game interaction.
+
+    Attributes:
+    - row (int): Row index of the button on the game board.
+    - col (int): Column index of the button on the game board.
+    - current_size (tuple): The current size of the button.
+
+    Methods:
+    - on_press: Event handler for button press.
+    - click_when_choosing_token: Event handler for button press when choosing a token on the board (when picking a card
+        containing the special effect: 'take same color').
+    - click_when_turn: Event handler for button press during a player's turn.
+    """
     def __init__(self, row, col, **kwargs):
+        """
+        Initialize the ImageButton.
+
+        Args:
+        - row (int): Row index of the button on the game board.
+        - col (int): Column index of the button on the game board.
+        - **kwargs: Additional keyword arguments.
+        """
         super(ImageButton, self).__init__(**kwargs)
         self.current_size = self.size
         self.row = row
         self.col = col
 
     def on_press(self):
+        """
+        Event handler for button press.
+
+        Depending on the game state, calls either click_when_choosing_token or click_when_turn.
+        """
         if self.parent.parent.parent.choosing_token_on_board:
             self.click_when_choosing_token()
         else:
             self.click_when_turn()
 
     def click_when_choosing_token(self):
+        """
+        Event handler for button press when choosing a token on the board.
+
+        Checks if the clicked cell is one of the available token choices and takes special effects accordingly.
+        """
         current_cell = [self.row, self.col]
         if current_cell in self.parent.indexes_tokens_to_choose:
             self.parent.take_token_special_effect(current_cell)
 
     def click_when_turn(self):
+        """
+        Event handler for button press during a player's turn.
+
+        Handles the logic for selecting and confirming cells during a turn.
+        """
         current_cell = (self.row, self.col)
         current_gemtype = self.parent.board_gems[self.row][self.col].gem_type
 
@@ -89,7 +173,50 @@ class ImageButton(ButtonBehavior, Image):
 
 
 class Board(RelativeLayout):
+    """
+    Represents the game board and manages its state and appearance.
+
+    Attributes:
+    - cols (int): Number of columns in the game board.
+    - rows (int): Number of rows in the game board.
+    - clicked_cells (list of tuples): List of currently clicked cells during a turn.
+    - clicked_cells_gemtype (list): List of gem types corresponding to clicked cells.
+    - not_clickable_cells_pos (list of tuples): List of positions for cells that are not clickable.
+    - not_clickable_cells_index (list of tuples): List of indices for cells that are not clickable.
+    - confirm_pos (tuple): Position for the confirmation button.
+    - indexes_tokens_to_choose (list of tuples): Indices of tokens available for choosing (when picking a card with the
+        special effect 'take same color').
+    - cell_size (tuple): Size of each cell on the game board (width, height).
+    - index_board (list of lists): Matrix representing the order of filling of cells on the game board.
+    - board_gems (list of lists): Matrix representing the gem types of cells on the game board.
+
+    Methods:
+    - fill: Fill the game board with tokens from the token bag.
+    - update_board: Update the visual appearance of the game board.
+    - draw_board: Draw the game board with gem images.
+    - color_clicked_cells: Color the cells that are currently clicked during a turn.
+    - color_not_clickable_cells: Color the cells that are not clickable during a turn.
+    - color_cells_to_choose: Color the cells containing tokens available for choosing.
+    - color_cells_to_not_choose: Color the cells that do not contain tokens available for choosing.
+    - generate_not_clickable_cells: Generate lists of not-clickable cells based on the current selection.
+    - generate_not_clickable_cells_one_selected: Generate not-clickable cells logic for one selected cell.
+    - generate_not_clickable_cells_one_selected_gold: Generate not-clickable cells logic for one selected gold cell.
+    - generate_not_clickable_cells_two_selected: Generate not-clickable cells logic for two selected cells.
+    - generate_not_clickable_cells_three_selected: Generate not-clickable cells logic for three selected cells.
+    - get_confirmation_index: Get the position for the confirmation button based on the selected cells.
+    - add_confirmation_to_pick: Add the confirmation button to the game board.
+    - confirmation_button_pressed: Event handler for the confirmation button press.
+    - take_token_special_effect: Handle special effects when choosing a token from the board.
+    - on_window_resize: Event handler for window resize.
+    """
     def __init__(self, tokenbag=None, **kwargs):
+        """
+        Initializes the Board object.
+
+        Args:
+        - tokenbag: An token bag to fill the board with tokens.
+        - **kwargs: Additional keyword arguments.
+        """
         super(Board, self).__init__(**kwargs)
         self.bind(size=self.on_window_resize)
         self.cols = 5
@@ -117,6 +244,12 @@ class Board(RelativeLayout):
         self.fill(tokenbag)
 
     def fill(self, tokenbag=None):
+        """
+        Fill the game board with tokens from the token bag.
+
+        Args:
+        - tokenbag: An optional token bag to fill the board with tokens.
+        """
         for current_position in range(1, 26):
             if tokenbag.get_number_of_tokens_in_bag() > 0:
                 matches = [match for match in find_index(current_position, self.index_board)]
@@ -127,6 +260,13 @@ class Board(RelativeLayout):
         self.update_board()
 
     def update_board(self, indexes_tokens_to_choose=None, *args):
+        """
+        Update the visual appearance of the game board.
+
+        Args:
+        - indexes_tokens_to_choose: Indices of tokens available for choosing.
+        - *args: Additional arguments.
+        """
         self.clear_widgets()
         self.canvas.clear()
         self.draw_board()
@@ -145,6 +285,7 @@ class Board(RelativeLayout):
                 self.add_confirmation_to_pick()
 
     def draw_board(self):
+        """ Draw the game board with gem images. """
         for row in range(len(self.board_gems)):
             for col in range(len(self.board_gems[row])):
                 if isinstance(self.board_gems[row][col], Token):
@@ -160,6 +301,7 @@ class Board(RelativeLayout):
                     self.add_widget(image)
 
     def color_clicked_cells(self):
+        """ Color the cells that are currently clicked during a turn. """
         for clicked_cell in self.clicked_cells:
             cell_pos_x = clicked_cell[1] * self.cell_size[0]
             cell_pos_y = (4 - clicked_cell[0]) * self.cell_size[1]
@@ -168,12 +310,14 @@ class Board(RelativeLayout):
                 Rectangle(pos=(cell_pos_x, cell_pos_y), size=self.cell_size)
 
     def color_not_clickable_cells(self):
+        """ Color the cells that are not clickable during a turn. """
         for coord_to_darken in self.not_clickable_cells_pos:
             with self.canvas:
                 Color(0, 0, 0, .5, mode='rgba')
                 Rectangle(pos=coord_to_darken, size=self.cell_size)
 
     def color_cells_to_choose(self):
+        """ Color the cells containing tokens available for choosing. """
         for index in self.indexes_tokens_to_choose:
             cell_pos_x = index[1] * self.cell_size[0]
             cell_pos_y = (4 - index[0]) * self.cell_size[1]
@@ -182,6 +326,7 @@ class Board(RelativeLayout):
                 Rectangle(pos=(cell_pos_x, cell_pos_y), size=self.cell_size)
 
     def color_cells_to_not_choose(self):
+        """ Color the cells that do not contain tokens available for choosing. """
         for possible_row in range(5):
             for possible_col in range(5):
                 if [possible_row, possible_col] not in self.indexes_tokens_to_choose:
@@ -192,6 +337,7 @@ class Board(RelativeLayout):
                         Rectangle(pos=(cell_pos_x, cell_pos_y), size=self.cell_size)
 
     def generate_not_clickable_cells(self):
+        """ Generate lists of not-clickable cells based on the current selection. """
         self.not_clickable_cells_pos = []
         self.not_clickable_cells_index = []
         if len(self.clicked_cells) == 1:
@@ -205,6 +351,7 @@ class Board(RelativeLayout):
             self.generate_not_clickable_cells_three_selected()
 
     def generate_not_clickable_cells_one_selected(self):
+        """ Generate not-clickable cells logic for one selected cell. """
         clicked_cell = self.clicked_cells[0]
         for possible_row in range(5):
             for possible_col in range(5):
@@ -223,6 +370,7 @@ class Board(RelativeLayout):
                     self.not_clickable_cells_index.append((possible_row, possible_col))
 
     def generate_not_clickable_cells_one_selected_gold(self):
+        """ Generate not-clickable cells logic for one selected gold cell. """
         clicked_cell = self.clicked_cells[0]
         for possible_row in range(5):
             for possible_col in range(5):
@@ -234,6 +382,7 @@ class Board(RelativeLayout):
                     self.not_clickable_cells_index.append((possible_row, possible_col))
 
     def generate_not_clickable_cells_two_selected(self):
+        """ Generate not-clickable cells logic for two selected cells. """
         clicked_one = self.clicked_cells[0]
         clicked_two = self.clicked_cells[1]
         possible_clicks = []
@@ -269,6 +418,7 @@ class Board(RelativeLayout):
                     self.not_clickable_cells_index.append(cell_index)
 
     def generate_not_clickable_cells_three_selected(self):
+        """ Generate not-clickable cells logic for three selected cells. """
         for possible_row in range(5):
             for possible_col in range(5):
                 if (possible_row, possible_col) not in self.clicked_cells:
@@ -278,6 +428,7 @@ class Board(RelativeLayout):
                     self.not_clickable_cells_index.append((possible_row, possible_col))
 
     def get_confirmation_index(self):
+        """ Get the position for the confirmation button based on the selected cells. """
         righteous_cell = [0, 0]
         for cell in self.clicked_cells:
             if cell[1] >= righteous_cell[1]:
@@ -299,6 +450,7 @@ class Board(RelativeLayout):
             self.confirm_pos = (confirm_x, confirm_y)
 
     def add_confirmation_to_pick(self):
+        """ Add the confirmation button to the game board. """
         confirmation_button = Button(
             pos=(self.confirm_pos[0], self.confirm_pos[1]),
             size_hint=(None, None),
@@ -308,6 +460,12 @@ class Board(RelativeLayout):
         self.add_widget(confirmation_button)
 
     def confirmation_button_pressed(self, instance):
+        """
+        Event handler for the confirmation button press.
+
+        Args:
+        - instance: The instance of the confirmation button.
+        """
         self.parent.parent.current_player.owned_tokens.add_tokens(self.clicked_cells_gemtype)
         for position in self.clicked_cells:
             self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
@@ -321,6 +479,12 @@ class Board(RelativeLayout):
         self.parent.parent.end_turn()
 
     def take_token_special_effect(self, chose_cell=None):
+        """
+        Handle choosing a token from the board when the special effect 'take same color' is used.
+
+        Args:
+        - chose_cell: The selected cell for choosing a token.
+        """
         color_to_take = self.board_gems[chose_cell[0]][chose_cell[1]].gem_type
         self.parent.parent.current_player.owned_tokens.add_token(color_to_take)
         self.board_gems[chose_cell[0]][chose_cell[1]].gem_type = GemType.ANY
@@ -330,4 +494,11 @@ class Board(RelativeLayout):
         self.update_board()
 
     def on_window_resize(self, instance, value):
+        """
+        Event handler for window resize.
+
+        Args:
+        - instance: The instance triggering the event.
+        - value: The new value after the resize.
+        """
         self.update_board()
