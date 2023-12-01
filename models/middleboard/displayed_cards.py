@@ -1,3 +1,28 @@
+"""
+Splendor Board Game: Displayed Cards Module
+
+This file contains classes and methods related to managing and displaying cards in the Splendor board game.
+It uses the Kivy framework for the graphical user interface.
+
+Classes:
+
+*> Popup used when a card that can be used as any color is picked. <*
+*> This popup lets the user choose which color will be that card. <*
+- ColorButton: Represents a button with a specific color that triggers an action when pressed.
+- AnyCardPopupCard: Displays options for selecting a color for a card with the "ANY" color type.
+- AnyCardPopup: A popup window for selecting a color for a card with the "ANY" color type.
+
+*> Popup used when a component of cards is clicked on. <*
+*> This lets the user see more details of the cards and choose one. <*
+- CardButton: Represents a button for displaying detailed information about a game card.
+- DisplayedCardPopupCard: Displays cards in a horizontal layout within a popup.
+- DisplayedCardPopup: A popup window for displaying cards at a specific level.
+
+*> This is the general class of displayed cards. <*
+- DisplayedCards: Represents a group of displayed cards with associated actions.
+
+"""
+
 from functools import partial
 
 from kivy.clock import Clock
@@ -12,7 +37,16 @@ from models import GemType
 
 class ColorButton(Button):
     """
-    A button representing a color choice for a card.
+    Represents a button with a specific color that triggers an action when pressed.
+
+    Attributes:
+    - text: The text displayed on the button (color).
+    - card_color: The color associated with the button.
+    - caller_displayed_cards: Reference to the parent DisplayedCards instance.
+    - card: The card associated with the button.
+
+    Methods:
+    - on_press(): Triggered when the button is pressed. Calls draw_card_any method on the parent DisplayedCards instance.
     """
     def __init__(self, color=None, caller_displayed_cards=None, card=None, **kwargs):
         super(ColorButton, self).__init__(**kwargs)
@@ -22,15 +56,20 @@ class ColorButton(Button):
         self.card = card
 
     def on_press(self):
-        """
-        Triggered when the button is pressed.
-        """
         self.caller_displayed_cards.draw_card_any(self.card, self.card_color)
 
 
 class AnyCardPopupCard(BoxLayout):
     """
-    The layout for displaying color choices in the AnyCardPopup.
+    Displays options for selecting a color for a card with the "ANY" color type.
+
+    Attributes:
+    - caller_displayed_cards: Reference to the parent DisplayedCards instance.
+    - card: The card associated with the popup.
+
+    Methods:
+    - build_ui(): Constructs the UI with ColorButton instances for each available color.
+    - get_non_null(): Retrieves a list of non-null colors based on the player's owned cards.
     """
     def __init__(self, caller_displayed_cards=None, card=None, **kwargs):
         super(AnyCardPopupCard, self).__init__(**kwargs)
@@ -40,18 +79,12 @@ class AnyCardPopupCard(BoxLayout):
         self.build_ui()
 
     def build_ui(self):
-        """
-        Build the UI with ColorButton widgets for each available color.
-        """
         color_list = self.get_non_null()
         for color in color_list:
             card_button = ColorButton(color=color, caller_displayed_cards=self.caller_displayed_cards, card=self.card)
             self.add_widget(card_button)
 
     def get_non_null(self):
-        """
-        Get a list of non-null colors from the current player's owned cards.
-        """
         owned_cards = self.caller_displayed_cards.parent.parent.current_player.owned_cards
         owned_colors = []
         for color in GemType:
@@ -64,7 +97,11 @@ class AnyCardPopupCard(BoxLayout):
 
 class AnyCardPopup(Popup):
     """
-    Popup for selecting a color when drawing a card with type ANY.
+    A popup window for selecting a color for a card with the "ANY" color type.
+
+    Attributes:
+    - caller_displayed_cards: Reference to the parent DisplayedCards instance.
+    - card: The card associated with the popup.
     """
     def __init__(self, caller_displayed_cards=None, card=None, **kwargs):
         super(AnyCardPopup, self).__init__(**kwargs)
@@ -78,7 +115,17 @@ class AnyCardPopup(Popup):
 
 class CardButton(Button):
     """
-    A button representing a card with detailed information.
+    Represents a button for displaying detailed information about a game card.
+
+    Attributes:
+    - card: The card associated with the button.
+    - disabled: Flag indicating whether the button is disabled.
+    - caller_displayed_cards: Reference to the parent DisplayedCards instance.
+
+    Methods:
+    - on_press(): Triggered when the button is pressed. Calls draw_card method on the parent DisplayedCards instance.
+    - get_card_text(): Generates text containing detailed information about the associated card.
+    - display_cost(): Generates text representation of the card's cost.
     """
     def __init__(self, card=None, disabled=True, caller_displayed_cards=None, **kwargs):
         super(CardButton, self).__init__(**kwargs)
@@ -89,15 +136,9 @@ class CardButton(Button):
         self.caller_displayed_cards = caller_displayed_cards
 
     def on_press(self):
-        """
-        Triggered when the button is pressed.
-        """
         self.caller_displayed_cards.draw_card(self.card)
 
     def get_card_text(self):
-        """
-        Get the detailed text representation of the card.
-        """
         return (
             f'ID: {self.card.card_id}\n'
             f'Color: {self.card.value} {self.card.color}\n'
@@ -108,15 +149,21 @@ class CardButton(Button):
         )
 
     def display_cost(self):
-        """
-        Display the cost of the card.
-        """
         return '\n'.join([f'- {color}: {value}' for color, value in self.card.cost.items()])
 
 
 class DisplayedCardPopupCard(BoxLayout):
     """
-    The layout for displaying cards in the DisplayedCardPopup.
+    Displays cards in a horizontal layout within a popup.
+
+    Attributes:
+    - cards: List of cards to be displayed.
+    - caller_displayed_cards: Reference to the parent DisplayedCards instance.
+
+    Methods:
+    - build_ui(): Constructs the UI with CardButton instances for each card.
+    - compute_has_enough_tokens(): Checks if the player has enough tokens to buy a specific card.
+    - is_there_any_color_card_in_hand(): Checks if there are cards of any color in the player's hand.
     """
     def __init__(self, cards=None, caller_displayed_cards=None, **kwargs):
         super(DisplayedCardPopupCard, self).__init__(**kwargs)
@@ -126,9 +173,6 @@ class DisplayedCardPopupCard(BoxLayout):
         self.build_ui()
 
     def build_ui(self):
-        """
-        Build the UI with CardButton widgets for each available card.
-        """
         for card in self.cards:
             enough_tokens = self.compute_has_enough_tokens(card=card)
             card_button = CardButton(card=card, disabled=not enough_tokens,
@@ -155,10 +199,6 @@ class DisplayedCardPopupCard(BoxLayout):
         return True
 
     def is_there_any_color_card_in_hand(self):
-        """
-        Check if there is any color card in the player's hand. This is used to know when card ANY can be bought
-        (a color has to be already owned by the user).
-        """
         owned_cards = self.caller_displayed_cards.parent.parent.current_player.owned_cards
         for color_cards in owned_cards.card_widgets.values():
             if len(color_cards.cards) > 0:
@@ -168,7 +208,11 @@ class DisplayedCardPopupCard(BoxLayout):
 
 class DisplayedCardPopup(Popup):
     """
-    Popup for displaying cards in the game.
+    A popup window for displaying cards at a specific level.
+
+    Attributes:
+    - level: The level of the cards to be displayed.
+    - caller_displayed_cards: Reference to the parent DisplayedCards instance.
     """
     def __init__(self, level=None, cards=None, caller_displayed_cards=None, **kwargs):
         super(DisplayedCardPopup, self).__init__(**kwargs)
@@ -181,7 +225,24 @@ class DisplayedCardPopup(Popup):
 
 class DisplayedCards(ButtonBehavior, BoxLayout):
     """
-    The layout for displaying a set of cards in the game, on the right of the board.
+    Represents a group of displayed cards with associated actions.
+
+    Attributes:
+    - max_cards: Maximum number of cards to be displayed.
+    - cards: List of cards currently displayed.
+    - level: The level of the cards.
+    - deck: Reference to the deck of cards.
+    - popup: Reference to the displayed card popup.
+    - popup_color: Reference to the any card popup for selecting color.
+
+    Methods:
+    - on_press(): Triggered when the button is pressed. Opens the DisplayedCardPopup.
+    - show_cards(): Clears and updates the UI with labels for each card.
+    - fill_cards(): Fills empty slots in the cards list with new cards from the deck.
+    - remove_card(): Removes a specific card from the cards list.
+    - draw_card(): Initiates the process of drawing a card from the display.
+    - draw_card_any(): Initiates the process of drawing a card with "ANY" color type.
+    - open_any_card_popup(): Opens the AnyCardPopup for selecting color.
     """
     cards = None
 
@@ -198,17 +259,11 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         self.show_cards()
 
     def on_press(self):
-        """
-        Triggered when the user clicks on a set of cards.
-        """
         if not self.parent.parent.choosing_token_on_board:
             self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, caller_displayed_cards=self)
             self.popup.open()
 
     def show_cards(self):
-        """
-        Display the cards on the layout.
-        """
         self.clear_widgets()
         for card in self.cards:
             label_text = f'Card level {card.level} (id: {card.card_id})'
@@ -216,23 +271,14 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
             self.add_widget(label)
 
     def fill_cards(self):
-        """
-        Fill empty card positions with new cards from the deck.
-        """
         for card_position in range(len(self.cards)):
             if self.cards[card_position] is None:
                 self.cards[card_position] = self.deck.draw_card()
 
     def remove_card(self, card):
-        """
-        Remove a specific card from the layout.
-        """
         self.cards = [None if x == card else x for x in self.cards]
 
     def draw_card(self, card):
-        """
-        Draw a card and update the layout accordingly.
-        """
         if card.color == GemType.ANY:
             # Delay the opening of the AnyCardPopup by scheduling it after a short delay
             Clock.schedule_once(partial(self.open_any_card_popup, card), 0.1)
@@ -247,9 +293,6 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
             current_player.owned_cards.get_card_widget(card.color).add_card(card)
 
     def draw_card_any(self, card, color):
-        """
-        Draw a card with type ANY and update the layout accordingly.
-        """
         self.remove_card(card)
         self.fill_cards()
         self.show_cards()
@@ -260,9 +303,6 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         current_player.owned_cards.get_card_widget(card.color).add_card(card)
 
     def open_any_card_popup(self, card, dt):
-        """
-        Open the AnyCardPopup after a short delay.
-        """
         self.popup_color = AnyCardPopup(card=card, caller_displayed_cards=self)
         self.popup_color.open()
 
