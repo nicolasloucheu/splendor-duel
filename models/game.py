@@ -46,6 +46,8 @@ class Game(BoxLayout):
         self.turn = None
         self.rectangle_instruction = None  # Store the instruction id for the rectangle
 
+        self.choosing_token_on_board = False
+
         self.start_game()
 
     def start_game(self):

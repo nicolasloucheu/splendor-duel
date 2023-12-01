@@ -48,6 +48,17 @@ class ImageButton(ButtonBehavior, Image):
         self.col = col
 
     def on_press(self):
+        if self.parent.parent.parent.choosing_token_on_board:
+            self.click_when_choosing_token()
+        else:
+            self.click_when_turn()
+
+    def click_when_choosing_token(self):
+        current_cell = [self.row, self.col]
+        if current_cell in self.parent.indexes_tokens_to_choose:
+            self.parent.take_token_special_effect(current_cell)
+
+    def click_when_turn(self):
         current_cell = (self.row, self.col)
         current_gemtype = self.parent.board_gems[self.row][self.col].gem_type
 
@@ -90,6 +101,8 @@ class Board(RelativeLayout):
         self.not_clickable_cells_index = []
         self.confirm_pos = None
 
+        self.indexes_tokens_to_choose = []
+
         self.cell_size = (self.width / self.cols, self.height / self.rows)
 
         self.index_board = [
@@ -113,16 +126,23 @@ class Board(RelativeLayout):
                     self.board_gems[double_index[0]][double_index[1]] = token
         self.update_board()
 
-    def update_board(self, *args):
+    def update_board(self, indexes_tokens_to_choose=None, *args):
         self.clear_widgets()
         self.canvas.clear()
         self.draw_board()
-        self.color_clicked_cells()
-        self.generate_not_clickable_cells()
-        self.color_not_clickable_cells()
-        if len(self.clicked_cells) > 0:
-            self.get_confirmation_index()
-            self.add_confirmation_to_pick()
+        if self.parent is None:
+            return
+        if self.parent.parent.choosing_token_on_board:
+            self.indexes_tokens_to_choose = indexes_tokens_to_choose
+            self.color_cells_to_choose()
+            self.color_cells_to_not_choose()
+        else:
+            self.color_clicked_cells()
+            self.generate_not_clickable_cells()
+            self.color_not_clickable_cells()
+            if len(self.clicked_cells) > 0:
+                self.get_confirmation_index()
+                self.add_confirmation_to_pick()
 
     def draw_board(self):
         for row in range(len(self.board_gems)):
@@ -152,6 +172,24 @@ class Board(RelativeLayout):
             with self.canvas:
                 Color(0, 0, 0, .5, mode='rgba')
                 Rectangle(pos=coord_to_darken, size=self.cell_size)
+
+    def color_cells_to_choose(self):
+        for index in self.indexes_tokens_to_choose:
+            cell_pos_x = index[1] * self.cell_size[0]
+            cell_pos_y = (4 - index[0]) * self.cell_size[1]
+            with self.canvas:
+                Color(0, 1, 0, .5, mode='rgba')
+                Rectangle(pos=(cell_pos_x, cell_pos_y), size=self.cell_size)
+
+    def color_cells_to_not_choose(self):
+        for possible_row in range(5):
+            for possible_col in range(5):
+                if [possible_row, possible_col] not in self.indexes_tokens_to_choose:
+                    cell_pos_x = possible_col * self.cell_size[0]
+                    cell_pos_y = (4 - possible_row) * self.cell_size[1]
+                    with self.canvas:
+                        Color(0, 0, 0, .5, mode='rgba')
+                        Rectangle(pos=(cell_pos_x, cell_pos_y), size=self.cell_size)
 
     def generate_not_clickable_cells(self):
         self.not_clickable_cells_pos = []
@@ -281,6 +319,15 @@ class Board(RelativeLayout):
         self.confirm_pos = None
         self.update_board()
         self.parent.parent.end_turn()
+
+    def take_token_special_effect(self, chose_cell=None):
+        color_to_take = self.board_gems[chose_cell[0]][chose_cell[1]].gem_type
+        self.parent.parent.current_player.owned_tokens.add_token(color_to_take)
+        self.board_gems[chose_cell[0]][chose_cell[1]].gem_type = GemType.ANY
+        self.indexes_tokens_to_choose = []
+        self.parent.parent.current_player.owned_cards.get_card_widget(color_to_take).after_special_effect()
+        self.parent.parent.choosing_token_on_board = False
+        self.update_board()
 
     def on_window_resize(self, instance, value):
         self.update_board()

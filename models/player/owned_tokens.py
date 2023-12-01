@@ -39,3 +39,11 @@ class OwnedTokens(BoxLayout):
 
     def get_tokens_widget(self, color):
         return self.token_widgets.get(color)
+
+    def take_token(self, color):
+        self.tokens[color] -= 1
+        self.update_widgets()
+
+    def add_token(self, color):
+        self.tokens[color] += 1
+        self.update_widgets()

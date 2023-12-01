@@ -201,8 +201,9 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         """
         Triggered when the user clicks on a set of cards.
         """
-        self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, caller_displayed_cards=self)
-        self.popup.open()
+        if not self.parent.parent.choosing_token_on_board:
+            self.popup = DisplayedCardPopup(level=self.level, cards=self.cards, caller_displayed_cards=self)
+            self.popup.open()
 
     def show_cards(self):
         """
@@ -244,8 +245,6 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
 
             current_player = self.parent.parent.current_player
             current_player.owned_cards.get_card_widget(card.color).add_card(card)
-            current_player.owned_tokens.remove_tokens(card.cost)
-            self.parent.parent.end_turn()
 
     def draw_card_any(self, card, color):
         """
@@ -259,8 +258,6 @@ class DisplayedCards(ButtonBehavior, BoxLayout):
         current_player = self.parent.parent.current_player
         card.color = color
         current_player.owned_cards.get_card_widget(card.color).add_card(card)
-        current_player.owned_tokens.remove_tokens(card.cost)
-        self.parent.parent.end_turn()
 
     def open_any_card_popup(self, card, dt):
         """
