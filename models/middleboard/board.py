@@ -18,8 +18,11 @@ Note: This code assumes that the Token, GemType, and other necessary classes are
 
 from kivy.graphics import Rectangle, Color
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.uix.relativelayout import RelativeLayout
 
 from models.unit.token import Token, GemType
@@ -467,6 +470,13 @@ class Board(RelativeLayout):
         - instance: The instance of the confirmation button.
         """
         self.parent.parent.current_player.owned_tokens.add_tokens(self.clicked_cells_gemtype)
+        if self.clicked_cells_gemtype[0].gem_type == GemType.GOLD:
+            print('gold')
+            level_cards_dict = {'1': self.parent.parent.middleboard.displayed_cards1.cards,
+                                '2': self.parent.parent.middleboard.displayed_cards2.cards,
+                                '3': self.parent.parent.middleboard.displayed_cards3.cards}
+            popup_reserve = ReserveCardPopup(level_cards_dict=level_cards_dict)
+            popup_reserve.open()
         for position in self.clicked_cells:
             self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
 
@@ -476,6 +486,7 @@ class Board(RelativeLayout):
         self.clicked_cells_gemtype = []
         self.confirm_pos = None
         self.update_board()
+
         self.parent.parent.end_turn()
 
     def take_token_special_effect(self, chose_cell=None):
@@ -502,3 +513,62 @@ class Board(RelativeLayout):
         - value: The new value after the resize.
         """
         self.update_board()
+
+
+class ReserveCardPopupBoxPerLevelCards(BoxLayout):
+    def __init__(self, cards=None, **kwargs):
+        super(ReserveCardPopupBoxPerLevelCards, self).__init__(**kwargs)
+        self.orientation = 'horizontal'
+        self.cards = cards
+        self.card = None
+        self.build_ui()
+
+    def build_ui(self):
+        for card in self.cards:
+            self.card = card
+            self.add_widget(Button(text=self.get_card_text(), on_press=self.reserve_card))
+
+    def get_card_text(self):
+        return (
+            f'ID: {self.card.card_id}\n'
+            f'Color: {self.card.value} {self.card.color}\n'
+            f'Victory points: {self.card.victory_points}\n'
+            f'Crowns: {self.card.crowns}\n'
+            f'Special effect: {self.card.special_effect}\n\n'
+            f'Cost:\n{self.display_cost()}\n'
+        )
+
+    def display_cost(self):
+        return '\n'.join([f'- {color}: {value}' for color, value in self.card.cost.items()])
+
+    def reserve_card(self, instance):
+        pass
+
+
+class ReserveCardPopupBoxPerLevel(BoxLayout):
+    def __init__(self, level_cards_dict=None, **kwargs):
+        super(ReserveCardPopupBoxPerLevel, self).__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.level_cards_dict = level_cards_dict
+        self.build_ui()
+
+    def build_ui(self):
+        for level, cards in self.level_cards_dict.items():
+            self.add_widget(Label(text=f'Level {level}'))
+            self.add_widget(ReserveCardPopupBoxPerLevelCards(cards=cards))
+
+
+class ReserveCardPopup(Popup):
+    """
+    A popup window for displaying cards of all levels when a gold token is chosen.
+
+    Attributes:
+    """
+    def __init__(self, level_cards_dict=None, **kwargs):
+        super(ReserveCardPopup, self).__init__(**kwargs)
+        self.title = f'Reserve a card'
+        self.size_hint = (.8, .8)
+        self.auto_dismiss = False
+        self.level_cards_dict = level_cards_dict
+        popup_card = ReserveCardPopupBoxPerLevel(level_cards_dict=self.level_cards_dict)
+        self.add_widget(popup_card)

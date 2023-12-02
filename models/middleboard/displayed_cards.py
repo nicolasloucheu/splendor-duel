@@ -180,9 +180,6 @@ class DisplayedCardPopupCard(BoxLayout):
             self.add_widget(card_button)
 
     def compute_has_enough_tokens(self, card):
-        """
-        Check if the player has enough tokens to buy the card.
-        """
         owned_tokens = self.caller_displayed_cards.parent.parent.current_player.owned_tokens.tokens
         owned_cards = self.caller_displayed_cards.parent.parent.current_player.owned_cards
         color_card_in_hand = self.is_there_any_color_card_in_hand()
