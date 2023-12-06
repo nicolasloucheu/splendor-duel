@@ -23,8 +23,8 @@ class Player(GridLayout):
         self.add_widget(self.owned_scrolls)
         self.owned_cards = OwnedCards()
         self.add_widget(self.owned_cards)
-        reserved_cards = Reserved(reserved_cards=reserved_cards)
-        self.add_widget(reserved_cards)
+        self.reserved_cards = Reserved(reserved_cards=reserved_cards)
+        self.add_widget(self.reserved_cards)
 
     def __str__(self):
         return f'{self.name}'

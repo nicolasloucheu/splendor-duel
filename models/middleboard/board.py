@@ -233,6 +233,8 @@ class Board(RelativeLayout):
 
         self.indexes_tokens_to_choose = []
 
+        self.popup_reserve = None
+
         self.cell_size = (self.width / self.cols, self.height / self.rows)
 
         self.index_board = [
@@ -471,12 +473,11 @@ class Board(RelativeLayout):
         """
         self.parent.parent.current_player.owned_tokens.add_tokens(self.clicked_cells_gemtype)
         if self.clicked_cells_gemtype[0].gem_type == GemType.GOLD:
-            print('gold')
             level_cards_dict = {'1': self.parent.parent.middleboard.displayed_cards1.cards,
                                 '2': self.parent.parent.middleboard.displayed_cards2.cards,
                                 '3': self.parent.parent.middleboard.displayed_cards3.cards}
-            popup_reserve = ReserveCardPopup(level_cards_dict=level_cards_dict)
-            popup_reserve.open()
+            self.popup_reserve = ReserveCardPopup(level_cards_dict=level_cards_dict, caller_board=self)
+            self.popup_reserve.open()
         for position in self.clicked_cells:
             self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
 
@@ -515,18 +516,12 @@ class Board(RelativeLayout):
         self.update_board()
 
 
-class ReserveCardPopupBoxPerLevelCards(BoxLayout):
-    def __init__(self, cards=None, **kwargs):
-        super(ReserveCardPopupBoxPerLevelCards, self).__init__(**kwargs)
-        self.orientation = 'horizontal'
-        self.cards = cards
-        self.card = None
-        self.build_ui()
-
-    def build_ui(self):
-        for card in self.cards:
-            self.card = card
-            self.add_widget(Button(text=self.get_card_text(), on_press=self.reserve_card))
+class ReserveCardPopupBoxPerLevelCardsButton(Button):
+    def __init__(self, card=None, caller_board=None, **kwargs):
+        super(ReserveCardPopupBoxPerLevelCardsButton, self).__init__(**kwargs)
+        self.card = card
+        self.caller_board = caller_board
+        self.text = self.get_card_text()
 
     def get_card_text(self):
         return (
@@ -541,21 +536,41 @@ class ReserveCardPopupBoxPerLevelCards(BoxLayout):
     def display_cost(self):
         return '\n'.join([f'- {color}: {value}' for color, value in self.card.cost.items()])
 
-    def reserve_card(self, instance):
-        pass
+    def on_press(self):
+        # add card to current player's reserved cards
+        self.caller_board.parent.parent.current_player.reserved_cards.reserved_cards.append(self.card)
+        self.caller_board.parent.parent.current_player.reserved_cards.show_reserved_cards()
+        self.caller_board.popup_reserve.dismiss()
+        # self.parent.parent.parent.parent.parent.parent.parent.parent.current_player.reserved_cards.append(self.card)
+
+
+class ReserveCardPopupBoxPerLevelCards(BoxLayout):
+    def __init__(self, cards=None, caller_board=None, **kwargs):
+        super(ReserveCardPopupBoxPerLevelCards, self).__init__(**kwargs)
+        self.orientation = 'horizontal'
+        self.cards = cards
+        self.card = None
+        self.caller_board = caller_board
+        self.build_ui()
+
+    def build_ui(self):
+        for card in self.cards:
+            self.card = card
+            self.add_widget(ReserveCardPopupBoxPerLevelCardsButton(card=self.card, caller_board=self.caller_board))
 
 
 class ReserveCardPopupBoxPerLevel(BoxLayout):
-    def __init__(self, level_cards_dict=None, **kwargs):
+    def __init__(self, level_cards_dict=None, caller_board=None, **kwargs):
         super(ReserveCardPopupBoxPerLevel, self).__init__(**kwargs)
         self.orientation = 'vertical'
         self.level_cards_dict = level_cards_dict
+        self.caller_board = caller_board
         self.build_ui()
 
     def build_ui(self):
         for level, cards in self.level_cards_dict.items():
             self.add_widget(Label(text=f'Level {level}'))
-            self.add_widget(ReserveCardPopupBoxPerLevelCards(cards=cards))
+            self.add_widget(ReserveCardPopupBoxPerLevelCards(cards=cards, caller_board=self.caller_board))
 
 
 class ReserveCardPopup(Popup):
@@ -564,11 +579,11 @@ class ReserveCardPopup(Popup):
 
     Attributes:
     """
-    def __init__(self, level_cards_dict=None, **kwargs):
+    def __init__(self, level_cards_dict=None, caller_board=None, **kwargs):
         super(ReserveCardPopup, self).__init__(**kwargs)
         self.title = f'Reserve a card'
         self.size_hint = (.8, .8)
         self.auto_dismiss = False
         self.level_cards_dict = level_cards_dict
-        popup_card = ReserveCardPopupBoxPerLevel(level_cards_dict=self.level_cards_dict)
+        popup_card = ReserveCardPopupBoxPerLevel(level_cards_dict=self.level_cards_dict, caller_board=caller_board)
         self.add_widget(popup_card)

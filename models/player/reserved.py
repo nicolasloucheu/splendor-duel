@@ -12,6 +12,7 @@ class Reserved(BoxLayout):
         self.show_reserved_cards()
 
     def show_reserved_cards(self):
+        self.clear_widgets()
         if len(self.reserved_cards) == 0:
             label = Label(text='no reserved cards')
             self.add_widget(label)
