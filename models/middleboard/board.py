@@ -105,6 +105,7 @@ class ImageButton(ButtonBehavior, Image):
         containing the special effect: 'take same color').
     - click_when_turn: Event handler for button press during a player's turn.
     """
+
     def __init__(self, row, col, **kwargs):
         """
         Initialize the ImageButton.
@@ -212,6 +213,7 @@ class Board(RelativeLayout):
     - take_token_special_effect: Handle special effects when choosing a token from the board.
     - on_window_resize: Event handler for window resize.
     """
+
     def __init__(self, tokenbag=None, **kwargs):
         """
         Initializes the Board object.
@@ -418,7 +420,6 @@ class Board(RelativeLayout):
                         self.board_gems[possible_row][possible_col].gem_type == GemType.ANY
                 ) and
                         cell_index not in self.clicked_cells):
-
                     self.not_clickable_cells_pos.append(cell_position)
                     self.not_clickable_cells_index.append(cell_index)
 
@@ -471,16 +472,35 @@ class Board(RelativeLayout):
         Args:
         - instance: The instance of the confirmation button.
         """
-        self.parent.parent.current_player.owned_tokens.add_tokens(self.clicked_cells_gemtype)
         if self.clicked_cells_gemtype[0].gem_type == GemType.GOLD:
             level_cards_dict = {'1': self.parent.parent.middleboard.displayed_cards1.cards,
                                 '2': self.parent.parent.middleboard.displayed_cards2.cards,
                                 '3': self.parent.parent.middleboard.displayed_cards3.cards}
             self.popup_reserve = ReserveCardPopup(level_cards_dict=level_cards_dict, caller_board=self)
+            self.popup_reserve.bind(on_dismiss=self.after_popup_closed)
             self.popup_reserve.open()
+        else:
+            self.continue_after_popup()
+
+    def after_popup_closed(self, instance):
+        """
+        Callback function to be called when the popup is closed.
+
+        Args:
+        - instance: The instance of the popup.
+        """
+        if instance.dismissed_by_button:
+            self.continue_after_popup()
+        else:
+            pass
+
+    def continue_after_popup(self):
+        """
+        Continues the game logic after the popup is closed.
+        """
+        self.parent.parent.current_player.owned_tokens.add_tokens(self.clicked_cells_gemtype)
         for position in self.clicked_cells:
             self.board_gems[position[0]][position[1]].gem_type = GemType.ANY
-
         self.not_clickable_cells_pos = []
         self.not_clickable_cells_index = []
         self.clicked_cells = []
@@ -537,6 +557,7 @@ class ReserveCardPopupBoxPerLevelCardsButton(Button):
         return '\n'.join([f'- {color}: {value}' for color, value in self.card.cost.items()])
 
     def on_press(self):
+        self.caller_board.popup_reserve.dismissed_by_button = True
         # add card to current player's reserved cards
         self.caller_board.parent.parent.current_player.reserved_cards.reserved_cards.append(self.card)
         self.caller_board.parent.parent.current_player.reserved_cards.show_reserved_cards()
@@ -556,6 +577,7 @@ class ReserveCardPopupBoxPerLevelCards(BoxLayout):
     def build_ui(self):
         for card in self.cards:
             self.card = card
+            players_tokens = self.caller_board.parent.parent.current_player.get_total_color()
             self.add_widget(ReserveCardPopupBoxPerLevelCardsButton(card=self.card, caller_board=self.caller_board))
 
 
@@ -581,9 +603,9 @@ class ReserveCardPopup(Popup):
     """
     def __init__(self, level_cards_dict=None, caller_board=None, **kwargs):
         super(ReserveCardPopup, self).__init__(**kwargs)
+        self.dismissed_by_button = False
         self.title = f'Reserve a card'
         self.size_hint = (.8, .8)
-        self.auto_dismiss = False
         self.level_cards_dict = level_cards_dict
         popup_card = ReserveCardPopupBoxPerLevel(level_cards_dict=self.level_cards_dict, caller_board=caller_board)
         self.add_widget(popup_card)

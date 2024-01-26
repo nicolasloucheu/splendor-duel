@@ -53,6 +53,7 @@ class OwnedCardBox(BoxLayout):
 
         self.build_ui()
 
+
     def add_card(self, card):
         self.cards.append(card)
         self.parent.parent.parent.current_player.owned_tokens.remove_tokens(card.cost)
@@ -95,8 +96,6 @@ class OwnedCardBox(BoxLayout):
                 Clock.schedule_once(
                     lambda dt: self.parent.parent.parent.middleboard.board.update_board(self.indexes_tokens_to_choose),
                     0.1)
-
-            print('take same color')
             pass
         elif card.special_effect == SpecialEffect.TAKE_SCROLL:
             if self.parent.parent.parent.middleboard.scrolls.scrolls > 0:
@@ -144,6 +143,13 @@ class OwnedCards(BoxLayout):
 
     def get_card_widget(self, color):
         return self.card_widgets.get(color)
+
+    def get_cards_colors(self):
+        cards_colors = {}
+        for color in GemType:
+            if color != GemType.GOLD and color != GemType.ANY:
+                cards_colors[color] = self.get_card_widget(color).num_tokens
+        return cards_colors
 
 
 class ColorButton(Button):

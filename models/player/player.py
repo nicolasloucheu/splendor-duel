@@ -28,3 +28,9 @@ class Player(GridLayout):
 
     def __str__(self):
         return f'{self.name}'
+
+    def get_total_color(self):
+        total_tokens = self.owned_tokens.tokens
+        cards_colors = self.owned_cards.get_cards_colors()
+        print(total_tokens)
+        print(cards_colors)
